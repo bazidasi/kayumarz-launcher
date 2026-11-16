@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_page_overview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:id="@+id/overview_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_24">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/spacing_16"
+            android:text="@string/overview_title"
+            android:textColor="@color/home_label_fg"
+            android:textSize="@dimen/text_title2"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/overview_pages_row"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/btn_overview_done"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_marginTop="@dimen/spacing_24"
+            android:minWidth="88dp"
+            android:background="@drawable/bg_done_pill"
+            android:gravity="center"
+            android:paddingStart="@dimen/spacing_24"
+            android:paddingEnd="@dimen/spacing_24"
+            android:text="@string/done"
+            android:textColor="@color/system_blue"
+            android:textSize="@dimen/text_headline"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

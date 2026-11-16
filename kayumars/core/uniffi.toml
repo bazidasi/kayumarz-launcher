@@ -1,0 +1,4 @@
+# UniFFI configuration for Kayumars Kotlin bindings
+[bindings.kotlin]
+package_name = "com.kayumars.launcher.bridge"
+cdylib_name = "kayumars_core"

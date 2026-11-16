@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing Scale -->
+    <dimen name="spacing_4">4dp</dimen>
+    <dimen name="spacing_8">8dp</dimen>
+    <dimen name="spacing_12">12dp</dimen>
+    <dimen name="spacing_16">16dp</dimen>
+    <dimen name="spacing_24">24dp</dimen>
+    <dimen name="spacing_32">32dp</dimen>
+
+    <!-- iOS Shape Language -->
+    <dimen name="ios_icon_corner">13.5dp</dimen>
+    <dimen name="ios_radius_card">16dp</dimen>
+    <dimen name="ios_radius_dock">32dp</dimen>
+    <dimen name="ios_radius_search">12dp</dimen>
+    <dimen name="ios_radius_menu">14dp</dimen>
+    <dimen name="ios_radius_sheet">24dp</dimen>
+    <dimen name="ios_hairline">0.5dp</dimen>
+
+    <!-- iOS Home Grid & Dock Dimensions -->
+    <dimen name="ios_icon_size">60dp</dimen>
+    <dimen name="ios_cell_height">86dp</dimen>
+    <dimen name="ios_dock_height">88dp</dimen>
+    <dimen name="ios_dock_margin_horizontal">8dp</dimen>
+    <dimen name="ios_dock_margin_bottom">8dp</dimen>
+    <dimen name="ios_page_dot_size">5dp</dimen>
+    <dimen name="ios_minus_badge_size">22dp</dimen>
+    <dimen name="ios_notif_badge_size">18dp</dimen>
+    <dimen name="ios_work_badge_size">14dp</dimen>
+    <dimen name="ios_folder_mini_icon">18dp</dimen>
+
+    <!-- iOS Spotlight, Context Menu & Rows -->
+    <dimen name="ios_search_field_height">48dp</dimen>
+    <dimen name="ios_spotlight_top_hit_height">72dp</dimen>
+    <dimen name="ios_list_row_height">56dp</dimen>
+    <dimen name="ios_settings_row_height">44dp</dimen>
+    <dimen name="ios_menu_width">240dp</dimen>
+    <dimen name="ios_menu_row_height">44dp</dimen>
+    <dimen name="ios_library_large_icon">30dp</dimen>
+    <dimen name="ios_library_mini_icon">15dp</dimen>
+
+    <!-- iOS Typography Scale -->
+    <dimen name="text_title1">28sp</dimen>
+    <dimen name="text_title2">22sp</dimen>
+    <dimen name="text_title3">20sp</dimen>
+    <dimen name="text_headline">17sp</dimen>
+    <dimen name="text_body">17sp</dimen>
+    <dimen name="text_callout">16sp</dimen>
+    <dimen name="text_subhead">15sp</dimen>
+    <dimen name="text_footnote">13sp</dimen>
+    <dimen name="text_caption">12sp</dimen>
+    <dimen name="text_icon_label">11sp</dimen>
+
+    <!-- Compatibility Dimens -->
+    <dimen name="radius_pill">20dp</dimen>
+    <dimen name="radius_sheet">24dp</dimen>
+    <dimen name="radius_card">16dp</dimen>
+    <dimen name="radius_icon">13.5dp</dimen>
+    <dimen name="search_bar_height">48dp</dimen>
+    <dimen name="search_bar_radius">12dp</dimen>
+    <dimen name="search_bar_margin_horizontal">16dp</dimen>
+    <dimen name="search_bar_margin_top">12dp</dimen>
+    <dimen name="search_bar_stroke">0.5dp</dimen>
+    <dimen name="search_icon_size">20dp</dimen>
+    <dimen name="touch_target_min">44dp</dimen>
+    <dimen name="result_row_height">56dp</dimen>
+    <dimen name="result_row_padding_horizontal">16dp</dimen>
+    <dimen name="result_icon_size">40dp</dimen>
+    <dimen name="result_label_text_size">17sp</dimen>
+    <dimen name="result_sublabel_text_size">13sp</dimen>
+    <dimen name="grid_cell_height">86dp</dimen>
+    <dimen name="grid_icon_size">60dp</dimen>
+    <dimen name="grid_label_text_size">11sp</dimen>
+    <dimen name="loading_progress_height">2dp</dimen>
+</resources>

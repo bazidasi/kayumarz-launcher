@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Quiet Precision Motion Durations: 120-250ms only -->
+    <integer name="motion_duration_fast">120</integer>
+    <integer name="motion_duration_press">150</integer>
+    <integer name="motion_duration_ime">200</integer>
+    <integer name="motion_duration_sheet">250</integer>
+    <integer name="motion_stagger_max">15</integer>
+</resources>

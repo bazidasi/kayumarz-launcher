@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- "California Neutral" iOS 17/18 Design Tokens (Dark) -->
+    <color name="system_background">#000000</color>
+    <color name="system_grouped_background">#000000</color>
+    <color name="secondary_system_background">#1C1C1E</color>
+    <color name="system_gray5_fill">#2C2C2E</color>
+    <color name="separator">#4A545458</color>
+    <color name="label_primary">#FFFFFF</color>
+    <color name="label_secondary">#99FFFFFF</color>
+    <color name="system_blue">#0A84FF</color>
+    <color name="system_red">#FF453A</color>
+    <color name="system_green">#30D158</color>
+
+    <!-- Wallpaper Icon Labels & Shadows -->
+    <color name="home_label_fg">#FFFFFF</color>
+    <color name="home_label_shadow">#80000000</color>
+
+    <!-- Frosted Blur Material & Fallback Scrim Surfaces -->
+    <color name="dock_material_bg">#991C1C1E</color>
+    <color name="dock_material_stroke">#26FFFFFF</color>
+    <color name="spotlight_material_bg">#D90E0E10</color>
+    <color name="folder_material_bg">#CC222225</color>
+    <color name="menu_material_bg">#EB1C1C1E</color>
+    <color name="library_tile_bg">#C71C1C1E</color>
+    <color name="search_pill_home_bg">#661C1C1E</color>
+    <color name="search_pill_home_fg">#E6FFFFFF</color>
+    <color name="page_dot_active">#FFFFFFFF</color>
+    <color name="page_dot_inactive">#66FFFFFF</color>
+    <color name="scrim_dim_60">#99000000</color>
+    <color name="work_badge_bg">#1C1C1E</color>
+    <color name="work_badge_fg">#0A84FF</color>
+
+    <!-- Backward-compatible semantic aliases -->
+    <color name="color_primary">@color/system_blue</color>
+    <color name="color_on_primary">#FFFFFF</color>
+    <color name="color_accent">@color/system_blue</color>
+    <color name="color_surface">@color/system_background</color>
+    <color name="color_surface_container">@color/secondary_system_background</color>
+    <color name="color_surface_pill">@color/system_gray5_fill</color>
+    <color name="color_surface_card">@color/secondary_system_background</color>
+    <color name="color_surface_sheet">@color/system_grouped_background</color>
+    <color name="color_frosted_menu">@color/menu_material_bg</color>
+    <color name="color_category_bar">@color/dock_material_bg</color>
+    <color name="color_scrim_drawer">@color/spotlight_material_bg</color>
+    <color name="color_outline">@color/separator</color>
+    <color name="color_outline_variant">@color/separator</color>
+    <color name="color_danger">@color/system_red</color>
+    <color name="color_text_primary">@color/label_primary</color>
+    <color name="color_text_secondary">@color/label_secondary</color>
+    <color name="color_text_hint">#80EBEBF5</color>
+    <color name="color_ripple">#26FFFFFF</color>
+    <color name="color_icon_badge_bg">#2C2C2E</color>
+    <color name="color_icon_badge_fg">#FFFFFF</color>
+</resources>

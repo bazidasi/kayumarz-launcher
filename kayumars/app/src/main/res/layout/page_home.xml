@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/home_page_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="@dimen/spacing_12"
+    android:paddingEnd="@dimen/spacing_12"
+    android:paddingTop="@dimen/spacing_8"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- Optional Home-Screen Widget Header Slot (populated when user adds a home widget) -->
+        <FrameLayout
+            android:id="@+id/home_widget_slot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/spacing_12"
+            android:visibility="gone" />
+
+        <!-- Optional Default Home Prompt Banner (only shown if not default home & not dismissed) -->
+        <LinearLayout
+            android:id="@+id/home_prompt_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/spacing_12"
+            android:background="@drawable/bg_library_tile"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/spacing_12"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/btn_set_home"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/set_home_prompt"
+                android:textColor="@color/label_primary"
+                android:textSize="@dimen/text_footnote"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btn_dismiss_home_prompt"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
+                android:padding="12dp"
+                android:src="@drawable/ic_glyph_close"
+                android:tint="@color/label_secondary"
+                android:contentDescription="@string/close" />
+        </LinearLayout>
+
+        <!-- Dynamic 4–6 Column iOS Home Grid -->
+        <GridLayout
+            android:id="@+id/home_grid_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:alignmentMode="alignMargins"
+            android:columnCount="4"
+            android:useDefaultMargins="false"
+            android:clipChildren="false"
+            android:clipToPadding="false" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/home_empty_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_done_pill"
+        android:paddingStart="@dimen/spacing_16"
+        android:paddingEnd="@dimen/spacing_16"
+        android:paddingTop="@dimen/spacing_8"
+        android:paddingBottom="@dimen/spacing_8"
+        android:text="@string/home_empty_hint"
+        android:textColor="@color/label_primary"
+        android:textSize="@dimen/text_footnote"
+        android:visibility="gone" />
+</FrameLayout>

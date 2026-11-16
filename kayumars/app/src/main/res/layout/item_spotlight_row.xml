@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Section Header Row (shown only when row is a section header) -->
+    <TextView
+        android:id="@+id/spotlight_section_title"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:gravity="bottom|start"
+        android:paddingStart="@dimen/spacing_4"
+        android:paddingEnd="@dimen/spacing_4"
+        android:paddingBottom="4dp"
+        android:textColor="@color/label_secondary"
+        android:textSize="@dimen/text_footnote"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Spotlight App / Setting Row (56dp standard, or 72dp Top Hit card) -->
+    <LinearLayout
+        android:id="@+id/spotlight_row_card"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ios_list_row_height"
+        android:background="@drawable/bg_settings_card"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_12"
+        android:paddingEnd="@dimen/spacing_12">
+
+        <ImageView
+            android:id="@+id/spotlight_row_icon"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_12"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/spotlight_row_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/label_primary"
+                android:textSize="@dimen/text_body"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/spotlight_row_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/label_secondary"
+                android:textSize="@dimen/text_caption"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/spotlight_row_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_8"
+            android:text="@string/open_app"
+            android:textColor="@color/system_blue"
+            android:textSize="@dimen/text_footnote"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/spotlight_row_chevron"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="@dimen/spacing_8"
+            android:src="@drawable/ic_glyph_chevron"
+            android:tint="@color/label_secondary"
+            android:contentDescription="@null" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ios_cell_height"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/cell_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="top|center_horizontal"
+        android:orientation="vertical"
+        android:paddingTop="4dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- 60dp Squircle Icon / Folder Tile Container -->
+        <FrameLayout
+            android:id="@+id/icon_frame"
+            android:layout_width="@dimen/ios_icon_size"
+            android:layout_height="@dimen/ios_icon_size"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Single App Icon -->
+            <ImageView
+                android:id="@+id/app_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:contentDescription="@null" />
+
+            <!-- Folder 3x3 Mini Icon Preview Tile (18dp micro-icons) -->
+            <GridLayout
+                android:id="@+id/folder_preview_grid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_folder_tile"
+                android:columnCount="3"
+                android:padding="5dp"
+                android:rowCount="3"
+                android:visibility="gone" />
+
+            <!-- Top-Start Edit-Mode Red Minus Badge (22dp circle inside 44dp hit target via click delegate) -->
+            <ImageView
+                android:id="@+id/badge_minus"
+                android:layout_width="@dimen/ios_minus_badge_size"
+                android:layout_height="@dimen/ios_minus_badge_size"
+                android:layout_gravity="top|start"
+                android:layout_marginStart="-4dp"
+                android:layout_marginTop="-4dp"
+                android:background="@drawable/bg_minus_badge"
+                android:padding="4dp"
+                android:src="@drawable/ic_glyph_minus"
+                android:tint="#FFFFFF"
+                android:visibility="gone"
+                android:contentDescription="@string/remove_from_home" />
+
+            <!-- Top-End Red Notification Count Badge (18dp pill, 99+) -->
+            <TextView
+                android:id="@+id/badge_notif_count"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/ios_notif_badge_size"
+                android:layout_gravity="top|end"
+                android:layout_marginEnd="-4dp"
+                android:layout_marginTop="-4dp"
+                android:minWidth="@dimen/ios_notif_badge_size"
+                android:background="@drawable/bg_badge_red"
+                android:gravity="center"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- Bottom-End Work Profile Briefcase Badge (14dp) -->
+            <ImageView
+                android:id="@+id/badge_work_profile"
+                android:layout_width="@dimen/ios_work_badge_size"
+                android:layout_height="@dimen/ios_work_badge_size"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="-2dp"
+                android:layout_marginBottom="-2dp"
+                android:background="@drawable/bg_work_badge"
+                android:padding="2dp"
+                android:src="@drawable/ic_glyph_briefcase"
+                android:tint="@color/work_badge_fg"
+                android:visibility="gone"
+                android:contentDescription="@string/app_info" />
+        </FrameLayout>
+
+        <!-- Label Row with optional Blue New-App Dot -->
+        <LinearLayout
+            android:id="@+id/label_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp">
+
+            <View
+                android:id="@+id/badge_new_dot"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginEnd="3dp"
+                android:background="@drawable/bg_dot_blue"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/app_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:shadowColor="@color/home_label_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
+                android:textColor="@color/home_label_fg"
+                android:textSize="@dimen/text_icon_label"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

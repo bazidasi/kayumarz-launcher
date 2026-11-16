@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+/* Custom scrollbars for high-density code and app lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+@keyframes ios-jiggle {
+  0% {
+    transform: rotate(-1.5deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotate(1.5deg) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: rotate(-1.5deg) translate3d(0, 0, 0);
+  }
+}
+
+.animate-ios-jiggle {
+  animation: ios-jiggle 0.35s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+

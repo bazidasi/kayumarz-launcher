@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">کیومرث</string>
+    <string name="app_name_persian">کیومرث</string>
+    <string name="offline_badge">۱۰۰٪ آفلاین · هسته راست</string>
+
+    <!-- خانه و داک -->
+    <string name="search_pill_label">جستجو</string>
+    <string name="search_hint">جستجوی اسپات‌لایت</string>
+    <string name="cancel">انصراف</string>
+    <string name="done">تایید</string>
+    <string name="clear_search">پاک کردن جستجو</string>
+    <string name="set_home_prompt">تنظیم کیومرث به عنوان خانه پیش‌فرض</string>
+    <string name="add_page_label">افزودن صفحه</string>
+    <string name="remove_page_label">حذف صفحه خالی</string>
+    <string name="page_indicator_desc">صفحه خانه %1$d از %2$d</string>
+    <string name="home_empty_hint">صفحه خالی — برنامه بکشید یا + بزنید</string>
+    <string name="remove_app_cd">حذف %1$s از صفحه اصلی</string>
+
+    <!-- اسپات‌لایت -->
+    <string name="spotlight_top_hit">بهترین نتیجه</string>
+    <string name="spotlight_applications">برنامه‌ها</string>
+    <string name="spotlight_suggestions">پیشنهادهای هوشمند</string>
+    <string name="spotlight_settings">تنظیمات</string>
+    <string name="no_results">نتیجه‌ای برای «%1$s» یافت نشد</string>
+
+    <!-- پوشه‌ها -->
+    <string name="folder_default_name">پوشه</string>
+    <string name="folder_rename_hint">نام پوشه</string>
+    <string name="folder_page_indicator">صفحه %1$d از %2$d</string>
+
+    <!-- منوی بافتی -->
+    <string name="open_app">باز کردن</string>
+    <string name="app_info">اطلاعات برنامه</string>
+    <string name="share_app">اشتراک‌گذاری برنامه</string>
+    <string name="remove_from_home">حذف از صفحه اصلی</string>
+    <string name="add_to_home">افزودن به صفحه اصلی</string>
+    <string name="edit_home_screen">ویرایش صفحه اصلی</string>
+    <string name="uninstall_app">حذف برنامه</string>
+    <string name="hide_app">مخفی از کتابخانه</string>
+
+    <!-- کتابخانه برنامه‌ها -->
+    <string name="app_library_title">کتابخانه برنامه‌ها</string>
+    <string name="app_library_search_hint">کتابخانه برنامه‌ها</string>
+    <string name="lib_cat_suggestions">پیشنهادها</string>
+    <string name="lib_cat_productivity">بهره‌وری و مالی</string>
+    <string name="lib_cat_social">اجتماعی</string>
+    <string name="lib_cat_creativity">خلاقیت و رسانه</string>
+    <string name="lib_cat_utilities">ابزارها</string>
+    <string name="lib_cat_other">سایر</string>
+
+    <!-- نمای امروز و ویجت‌ها -->
+    <string name="today_view_title">نمای امروز</string>
+    <string name="today_add_widget">افزودن ویجت</string>
+    <string name="widget_picker_title">ویجت‌ها</string>
+    <string name="widget_picker_subtitle">برای افزودن به نمای امروز یا خانه ضربه بزنید</string>
+    <string name="widget_add_to_today">افزودن به امروز</string>
+    <string name="widget_add_to_home">افزودن به خانه</string>
+    <string name="widget_resize_small">کوچک</string>
+    <string name="widget_resize_medium">متوسط</string>
+    <string name="widget_resize_large">بزرگ</string>
+    <string name="widget_clock_title">ساعت و تاریخ</string>
+    <string name="widget_suggestions_title">پیشنهادهای برنامه</string>
+    <string name="widget_status_title">وضعیت آفلاین</string>
+    <string name="widget_status_body">۰ مجوز شبکه · فهرست Nucleo آماده</string>
+    <string name="today_no_widgets">ویجتی نیست — افزودن ویجت را بزنید</string>
+
+    <!-- تنظیمات سبک iOS -->
+    <string name="settings">تنظیمات</string>
+    <string name="settings_section_general">عمومی</string>
+    <string name="settings_section_appearance">ظاهر و نمایشگر</string>
+    <string name="settings_section_home">صفحه اصلی</string>
+    <string name="settings_section_library">کتابخانه برنامه‌ها</string>
+    <string name="settings_section_spotlight">اسپات‌لایت</string>
+    <string name="settings_section_badges">اعلان‌ها و نشان‌ها</string>
+    <string name="settings_section_gestures">ژست‌ها و حرکت</string>
+    <string name="settings_section_about">درباره</string>
+
+    <string name="theme_title">پوسته</string>
+    <string name="theme_system">سیستم</string>
+    <string name="theme_light">روشن</string>
+    <string name="theme_dark">تیره</string>
+    <string name="theme_amoled">مشکی خالص OLED</string>
+
+    <string name="wallpaper_dim_title">تیرگی والپیپر (%1$d%%)</string>
+    <string name="wallpaper_blur_title">مات‌شدگی والپیپر (%1$d dp)</string>
+    <string name="blur_materials_title">جنس شیشه مات (RenderEffect)</string>
+    <string name="icon_shape_title">شکل آیکون</string>
+    <string name="icon_shape_squircle">اسکویرکل iOS (۲۲.۵٪)</string>
+    <string name="icon_shape_circle">دایره</string>
+    <string name="icon_shape_rounded_square">گوشه‌گرد</string>
+    <string name="icon_shape_system">سیستم</string>
+    <string name="show_icon_labels_title">نمایش نام آیکون‌ها</string>
+
+    <string name="home_columns_title">تعداد ستون شبکه (%1$d)</string>
+    <string name="dock_capacity_title">ظرفیت داک (%1$d)</string>
+    <string name="show_search_pill_title">کپسول جستجو بالای داک</string>
+    <string name="reset_home_layout">بازنشانی چیدمان خانه</string>
+    <string name="reset_home_layout_confirm">بازگردانی صفحات، پوشه‌ها و داک به حالت پیش‌فرض؟</string>
+
+    <string name="show_app_library_title">نمایش صفحه کتابخانه برنامه‌ها</string>
+    <string name="show_today_page_title">نمایش صفحه ویجت‌های امروز</string>
+    <string name="cycle_library_order">تغییر ترتیب دسته‌ها</string>
+
+    <string name="spotlight_suggestions_title">نمایش پیشنهادهای هوشمند</string>
+    <string name="spotlight_search_settings_title">شامل تنظیمات سیستم</string>
+    <string name="reset_history">پاک‌سازی تاریخچه جستجو و اجرا</string>
+    <string name="reset_history_confirm">آیا از پاک کردن تاریخچه رتبه‌بندی محلی اطمینان دارید؟</string>
+
+    <string name="notification_badges_title">نشان تعداد اعلان‌ها</string>
+    <string name="notification_access_btn">اعطای دسترسی اعلان‌ها</string>
+    <string name="notification_access_granted">دسترسی اعلان‌ها فعال است</string>
+    <string name="notification_explainer_title">نشان‌های اعلان کاملاً آفلاین</string>
+    <string name="notification_explainer_body">کیومرث تعداد اعلان‌های فعال را فقط در حافظه موقت می‌خواند تا نشان قرمز روی آیکون نمایش دهد. هیچ داده‌ای از گوشی خارج نمی‌شود.</string>
+    <string name="new_app_dot_title">نقطه آبی برای برنامه‌های جدید</string>
+    <string name="mute_app_badges_title">برنامه‌های بی‌صدا (%1$d)</string>
+
+    <string name="gesture_double_tap_lock">دوبار ضربه برای قفل صفحه</string>
+    <string name="lock_service_setup_btn">فعال‌سازی سرویس دسترسی قفل</string>
+    <string name="gesture_pinch_overview">نیشگون برای نمای کلی صفحات</string>
+    <string name="gesture_swipe_down_spotlight">کشیدن به پایین برای اسپات‌لایت</string>
+    <string name="motion_debug_title">نمایشگر نرخ فریم ۱۲۰ هرتز</string>
+
+    <string name="about_version">کیومرث ۲.۰ (نسخه iOS)</string>
+    <string name="about_engine">هسته راست + جستجوی Nucleo + بدون مجوز شبکه</string>
+
+    <!-- سرویس‌ها -->
+    <string name="notification_listener_label">نشان‌های اعلان کیومرث</string>
+    <string name="lock_service_label">قفل دوضربه‌ای کیومرث</string>
+    <string name="lock_service_desc">سرویس اختیاری برای قفل صفحه هنگام دوبار ضربه روی فضای خالی صفحه اصلی.</string>
+    <string name="gesture_lock_hint">برای قفل دوضربه‌ای، سرویس دسترسی کیومرث را فعال کنید.</string>
+    <string name="confirm">تایید</string>
+    <string name="enable">فعال‌سازی</string>
+    <string name="close">بستن</string>
+    <string name="add_icon_title">افزودن برنامه به خانه</string>
+    <string name="all_apps_already_on_home">همه برنامه‌ها در صفحه اصلی هستند</string>
+    <string name="unhide_all">بازگردانی %1$d برنامه مخفی</string>
+    <string name="overview_title">صفحات خانه</string>
+</resources>

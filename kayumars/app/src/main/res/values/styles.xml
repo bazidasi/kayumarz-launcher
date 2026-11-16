@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Quiet Precision Text Styles -->
+    <style name="TextAppearance.Kayumars.SearchHint" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/result_label_text_size</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/color_text_hint</item>
+    </style>
+
+    <style name="TextAppearance.Kayumars.SearchText" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/result_label_text_size</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/color_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.Kayumars.AppLabel" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/result_label_text_size</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/color_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.Kayumars.AppSublabel" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/result_sublabel_text_size</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/color_text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.Kayumars.GridLabel" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/grid_label_text_size</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/color_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.Kayumars.FooterHint" parent="android:TextAppearance">
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/color_text_secondary</item>
+    </style>
+</resources>

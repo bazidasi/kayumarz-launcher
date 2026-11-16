@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/settings_item_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/ios_settings_row_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_16"
+        android:paddingEnd="@dimen/spacing_12"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:id="@+id/settings_item_icon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="@dimen/spacing_12"
+            android:tint="@color/system_blue"
+            android:visibility="gone"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/settings_item_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/label_primary"
+            android:textSize="@dimen/text_body" />
+
+        <TextView
+            android:id="@+id/settings_item_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_8"
+            android:textColor="@color/label_secondary"
+            android:textSize="@dimen/text_subhead" />
+
+        <ImageView
+            android:id="@+id/settings_item_chevron"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="6dp"
+            android:src="@drawable/ic_glyph_chevron"
+            android:tint="@color/label_secondary"
+            android:contentDescription="@null" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/settings_item_divider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ios_hairline"
+        android:layout_marginStart="@dimen/spacing_16"
+        android:background="@color/separator" />
+</LinearLayout>

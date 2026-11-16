@@ -1,0 +1,40 @@
+[versions]
+agp = "8.8.0"
+kotlin = "2.1.0"
+rustAndroid = "0.9.4"
+coreKtx = "1.15.0"
+appcompat = "1.7.0"
+recyclerview = "1.4.0"
+coroutines = "1.10.1"
+jna = "5.14.0"
+benchmarkMacro = "1.3.3"
+profileinstaller = "1.4.1"
+dynamicanimation = "1.0.0"
+interpolator = "1.0.0"
+palette = "1.0.0"
+junit = "4.13.2"
+extJunit = "1.2.1"
+espresso = "3.6.1"
+uiautomator = "2.3.0"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+androidx-dynamicanimation = { group = "androidx.dynamicanimation", name = "dynamicanimation", version.ref = "dynamicanimation" }
+androidx-interpolator = { group = "androidx.interpolator", name = "interpolator", version.ref = "interpolator" }
+androidx-palette = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
+androidx-benchmark-macro = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacro" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "extJunit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-test = { id = "com.android.test", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+rust-android = { id = "org.mozilla.rust-android-gradle.rust-android", version.ref = "rustAndroid" }

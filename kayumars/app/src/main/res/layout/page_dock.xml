@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_dock"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ios_dock_height"
+    android:layout_marginStart="@dimen/ios_dock_margin_horizontal"
+    android:layout_marginEnd="@dimen/ios_dock_margin_horizontal"
+    android:layout_marginBottom="@dimen/ios_dock_margin_bottom"
+    android:background="@drawable/bg_dock"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/dock_row"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_12"
+        android:paddingEnd="@dimen/spacing_12"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:baselineAligned="false" />
+</FrameLayout>

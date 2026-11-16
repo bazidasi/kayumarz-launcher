@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/today_page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/spacing_16"
+    android:paddingEnd="@dimen/spacing_16"
+    android:paddingTop="@dimen/spacing_12">
+
+    <!-- Today View Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/today_date_headline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today_view_title"
+                android:textColor="@color/home_label_fg"
+                android:shadowColor="@color/home_label_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
+                android:textSize="@dimen/text_title2"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_today_add_widget"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:minWidth="@dimen/touch_target_min"
+            android:background="@drawable/bg_done_pill"
+            android:gravity="center"
+            android:paddingStart="@dimen/spacing_12"
+            android:paddingEnd="@dimen/spacing_12"
+            android:text="@string/today_add_widget"
+            android:textColor="@color/system_blue"
+            android:textSize="@dimen/text_footnote"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Scrollable Stack of 16dp Rounded Widget Cards (8dp gutters) -->
+    <ScrollView
+        android:id="@+id/today_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/spacing_8"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/today_widgets_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/spacing_16" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/today_empty_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="@dimen/spacing_24"
+        android:background="@drawable/bg_done_pill"
+        android:paddingStart="@dimen/spacing_16"
+        android:paddingEnd="@dimen/spacing_16"
+        android:paddingTop="@dimen/spacing_8"
+        android:paddingBottom="@dimen/spacing_8"
+        android:text="@string/today_no_widgets"
+        android:textColor="@color/label_primary"
+        android:textSize="@dimen/text_footnote"
+        android:visibility="gone" />
+</LinearLayout>

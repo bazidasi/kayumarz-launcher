@@ -1,0 +1,6 @@
+{
+  "name": "Kayumars (کیومرث) - Ultra-Fast Android Launcher",
+  "description": "Production-grade Android launcher with hybrid Rust core and Kotlin shell, sub-5ms nucleo fuzzy search, and KISS frequency-recency ranking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

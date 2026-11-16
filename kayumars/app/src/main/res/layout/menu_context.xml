@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/menu_context"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:visibility="gone">
+
+    <!-- Frosted 240dp iOS Context Menu Card (14dp corners, 0.5dp hairlines) -->
+    <LinearLayout
+        android:id="@+id/menu_context_card"
+        android:layout_width="@dimen/ios_menu_width"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_menu"
+        android:elevation="16dp"
+        android:orientation="vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <!-- App Title Header -->
+        <TextView
+            android:id="@+id/menu_app_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/spacing_16"
+            android:paddingEnd="@dimen/spacing_16"
+            android:paddingTop="10dp"
+            android:paddingBottom="8dp"
+            android:textColor="@color/label_secondary"
+            android:textSize="@dimen/text_caption"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/ios_hairline"
+            android:background="@color/separator" />
+
+        <!-- Dynamic LauncherApps Quick Actions (up to 4 items) -->
+        <LinearLayout
+            android:id="@+id/menu_shortcuts_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Built-in Launcher Actions Container (Open, App Info, Share, Edit Home, Remove, Delete) -->
+        <LinearLayout
+            android:id="@+id/menu_actions_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+</FrameLayout>

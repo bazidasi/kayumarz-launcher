@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Optional Wallpaper Blur Backdrop Layer (RenderEffect applied via BlurGate when > 0dp) -->
+    <View
+        android:id="@+id/wallpaper_blur_layer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" />
+
+    <!-- Static Wallpaper Dim Scrim (0%..40%) -->
+    <View
+        android:id="@+id/wallpaper_dim_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#00000000" />
+
+    <!-- Main Home Workspace Shell -->
+    <LinearLayout
+        android:id="@+id/home_shell"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- Edit Mode / Jiggle Top Action Bar (only visible during Edit Mode) -->
+        <LinearLayout
+            android:id="@+id/edit_mode_bar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/spacing_16"
+            android:paddingEnd="@dimen/spacing_16"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/btn_add_page"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:minWidth="@dimen/touch_target_min"
+                android:background="@drawable/bg_done_pill"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_12"
+                android:paddingEnd="@dimen/spacing_12"
+                android:text="@string/add_page_label"
+                android:textColor="@color/label_primary"
+                android:textSize="@dimen/text_footnote"
+                android:textStyle="bold"
+                android:contentDescription="@string/add_page_label" />
+
+            <TextView
+                android:id="@+id/btn_remove_page"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="@dimen/spacing_8"
+                android:minWidth="@dimen/touch_target_min"
+                android:background="@drawable/bg_done_pill"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_12"
+                android:paddingEnd="@dimen/spacing_12"
+                android:text="@string/remove_page_label"
+                android:textColor="@color/system_red"
+                android:textSize="@dimen/text_footnote"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:contentDescription="@string/remove_page_label" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/btn_done_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:minWidth="68dp"
+                android:background="@drawable/bg_done_pill"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16"
+                android:paddingEnd="@dimen/spacing_16"
+                android:text="@string/done"
+                android:textColor="@color/system_blue"
+                android:textSize="@dimen/text_subhead"
+                android:textStyle="bold"
+                android:contentDescription="@string/done" />
+        </LinearLayout>
+
+        <!-- Horizontal Multi-Page Pager: [Today (-1)] | [Home 0..N] | [App Library (+1)] -->
+        <FrameLayout
+            android:id="@+id/home_pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipChildren="true"
+            android:clipToPadding="false" />
+
+        <!-- Page Indicator Dots (5dp dots; clickable to jump pages) -->
+        <LinearLayout
+            android:id="@+id/page_dots_row"
+            android:layout_width="wrap_content"
+            android:layout_height="22dp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/spacing_12"
+            android:paddingEnd="@dimen/spacing_12" />
+
+        <!-- Optional iOS 18 Search Pill above Dock (default ON, toggleable in Settings) -->
+        <LinearLayout
+            android:id="@+id/btn_open_search"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="@dimen/spacing_8"
+            android:background="@drawable/bg_search_pill_home"
+            android:gravity="center"
+            android:minWidth="104dp"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/spacing_12"
+            android:paddingEnd="@dimen/spacing_12"
+            android:contentDescription="@string/search_hint">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_glyph_search"
+                android:tint="@color/search_pill_home_fg"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="@string/search_pill_label"
+                android:textColor="@color/search_pill_home_fg"
+                android:textSize="@dimen/text_footnote"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Persistent Frosted iOS Dock -->
+        <include
+            android:id="@+id/page_dock"
+            layout="@layout/page_dock" />
+    </LinearLayout>
+
+    <!-- 60% Dim Scrim behind Context Menu / Folder / Overview -->
+    <View
+        android:id="@+id/context_scrim_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/scrim_dim_60"
+        android:visibility="gone" />
+
+    <!-- Expanded Folder Card (Zoom-morphed from icon tile) -->
+    <include
+        android:id="@+id/card_folder"
+        layout="@layout/card_folder" />
+
+    <!-- Long-Press Context Menu Card (240dp frosted 14dp) -->
+    <include
+        android:id="@+id/menu_context"
+        layout="@layout/menu_context" />
+
+    <!-- Spotlight Search Overlay (Swipe down from Home center or tap Search pill) -->
+    <include
+        android:id="@+id/overlay_spotlight"
+        layout="@layout/overlay_spotlight" />
+
+    <!-- Pinch-in Home Page Overview Switcher -->
+    <include
+        android:id="@+id/overlay_page_overview"
+        layout="@layout/overlay_page_overview" />
+
+    <!-- Blurred Widget Picker Bottom Sheet -->
+    <include
+        android:id="@+id/sheet_widget_picker"
+        layout="@layout/sheet_widget_picker" />
+
+    <!-- Full-Screen iOS Grouped Settings Screen -->
+    <include
+        android:id="@+id/page_settings"
+        layout="@layout/page_settings" />
+
+    <!-- Blue Merge Ring shown during 150ms hover-to-folder drag -->
+    <View
+        android:id="@+id/drag_drop_ring"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:background="@drawable/bg_drop_ring"
+        android:visibility="gone" />
+
+    <!-- Floating Drag Snapshot Container -->
+    <FrameLayout
+        android:id="@+id/drag_snapshot_view"
+        android:layout_width="80dp"
+        android:layout_height="88dp"
+        android:elevation="14dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/drag_snapshot_icon"
+            android:layout_width="@dimen/ios_icon_size"
+            android:layout_height="@dimen/ios_icon_size"
+            android:layout_gravity="top|center_horizontal"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+    <!-- Optional 120 Hz Choreographer Frame-Time HUD -->
+    <TextView
+        android:id="@+id/motion_debug_hud"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="@dimen/spacing_12"
+        android:background="@drawable/bg_done_pill"
+        android:fontFamily="monospace"
+        android:paddingStart="@dimen/spacing_8"
+        android:paddingEnd="@dimen/spacing_8"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/system_green"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+</FrameLayout>

@@ -23,7 +23,7 @@
         android:id="@+id/spotlight_row_card"
         android:layout_width="match_parent"
         android:layout_height="@dimen/ios_list_row_height"
-        android:background="@drawable/bg_settings_card"
+        android:background="@drawable/bg_spotlight_card"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="@dimen/spacing_12"

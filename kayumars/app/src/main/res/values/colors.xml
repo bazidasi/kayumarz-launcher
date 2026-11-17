@@ -31,6 +31,17 @@
     <color name="work_badge_bg">#FFFFFFFF</color>
     <color name="work_badge_fg">#007AFF</color>
 
+    <!-- Glass material sheen shared by dock / pill / cards / menus / sheets -->
+    <color name="glass_sheen">#2EFFFFFF</color>
+    <color name="today_card_bg">#D9F7F7FA</color>
+    <color name="spotlight_card_bg">#D9FFFFFF</color>
+
+    <!-- iOS control tokens -->
+    <color name="switch_track_off">#E9E9EA</color>
+    <color name="switch_thumb">#FFFFFF</color>
+    <color name="slider_track">#D1D1D6</color>
+    <color name="search_field_bg">#33767680</color>
+
     <!-- Backward-compatible semantic aliases -->
     <color name="color_primary">@color/system_blue</color>
     <color name="color_on_primary">#FFFFFF</color>

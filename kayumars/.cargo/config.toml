@@ -1,18 +1,19 @@
 [target.aarch64-linux-android]
 ar = "llvm-ar"
 linker = "aarch64-linux-android26-clang"
+rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now,-z,max-page-size=16384"]
 
 [target.armv7-linux-androideabi]
 ar = "llvm-ar"
 linker = "armv7a-linux-androideabi26-clang"
+rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now,-z,max-page-size=16384"]
 
 [target.x86_64-linux-android]
 ar = "llvm-ar"
 linker = "x86_64-linux-android26-clang"
+rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now,-z,max-page-size=16384"]
 
 [target.i686-linux-android]
 ar = "llvm-ar"
 linker = "i686-linux-android26-clang"
-
-[build]
-rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now"]
+rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now,-z,max-page-size=16384"]

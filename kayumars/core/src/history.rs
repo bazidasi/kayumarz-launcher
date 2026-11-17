@@ -127,6 +127,12 @@ impl HistoryTracker {
         (counts, total, recency_order)
     }
 
+    /// Clears all launch events, frequency counts, and lifetime totals.
+    pub fn reset(&self) {
+        let mut guard = self.data.write();
+        *guard = HistoryData::default();
+    }
+
     /// Snapshot for bincode persistence.
     pub fn snapshot(&self) -> HistoryData {
         self.data.read().clone()

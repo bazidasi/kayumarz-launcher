@@ -1,8 +1,8 @@
 //! Zero-allocation fuzzy search engine powered by `nucleo` (from Helix editor).
 //! Designed to scan and rank 500+ apps in under 3-5 ms on mobile hardware.
 
-use nucleo::pattern::{CaseMatching, Normalization, Pattern};
-use nucleo::{Config, Matcher, Utf32String};
+use nucleo::pattern::{CaseMatching, Pattern};
+use nucleo::{Config, Matcher, Utf32Str};
 use parking_lot::Mutex;
 use std::collections::HashMap;
 use unicode_normalization::UnicodeNormalization;
@@ -15,7 +15,7 @@ use crate::rank::score_fuzzy_result;
 pub struct SearchEngine {
     matcher: Mutex<Matcher>,
     scratch_buf: Mutex<Vec<Candidate>>,
-    query_u32_buf: Mutex<Utf32String>,
+    query_u32_buf: Mutex<Vec<char>>,
 }
 
 #[derive(Clone, Default)]
@@ -29,14 +29,14 @@ impl SearchEngine {
         Self {
             matcher: Mutex::new(Matcher::new(Config::DEFAULT)),
             scratch_buf: Mutex::new(Vec::with_capacity(1024)),
-            query_u32_buf: Mutex::new(Utf32String::new()),
+            query_u32_buf: Mutex::new(Vec::with_capacity(256)),
         }
     }
 
     /// Executes fuzzy search against an index snapshot.
     ///
     /// - Normalizes query with Unicode NFC and lowercase
-    /// - Computes Nucleo score with `CaseMatching::Smart` and `Normalization::Smart`
+    /// - Computes Nucleo score with `CaseMatching::Smart` (patterns normalize internally)
     /// - Boosts with KISS frequency × recency multiplier
     /// - Truncates to `max_results` (default 12)
     pub fn search(
@@ -62,15 +62,15 @@ impl SearchEngine {
 
         // Prepare pattern
         let norm_query: String = trimmed.nfc().collect::<String>().to_lowercase();
-        let pattern = Pattern::parse(&norm_query, CaseMatching::Smart, Normalization::Smart);
+        let pattern = Pattern::parse(&norm_query, CaseMatching::Smart);
 
         // Score each indexed application using pre-normalized UTF-8 representation
         for (i, app) in snapshot.apps.iter().enumerate() {
             u32_buf.clear();
-            u32_buf.extend(app.normalized_label.chars());
+            let haystack = Utf32Str::new(&app.normalized_label, &mut u32_buf);
 
             // Primary match against app label
-            let mut best_raw_score = pattern.score(u32_buf.slice(..), &mut matcher).unwrap_or(0);
+            let mut best_raw_score = pattern.score(haystack, &mut matcher).unwrap_or(0);
 
             // Prefix match bonus: if label begins with exact query
             if app.normalized_label.starts_with(&norm_query) {

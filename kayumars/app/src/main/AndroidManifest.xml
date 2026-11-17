@@ -1,11 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.kayumars.launcher"
-    android:versionCode="2"
-    android:versionName="2.0.0">
-
-    <uses-sdk
-        android:minSdkVersion="26"
-        android:targetSdkVersion="35" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Hard performance & privacy budget: Zero network permissions. No INTERNET allowed. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
@@ -43,17 +36,8 @@
             </intent-filter>
         </activity>
 
-        <!-- Dynamic package install / update / uninstall updates -->
-        <receiver
-            android:name=".pkg.PackageChangeReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_REMOVED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
+        <!-- Package install/update/uninstall refresh is handled by the dynamically
+             registered PackageChangeReceiver in MainActivity (single scan path). -->
 
         <!-- P2: Notification count badges (18dp red circle, local-only, zero network) -->
         <service

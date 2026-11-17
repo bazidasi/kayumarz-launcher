@@ -3,7 +3,12 @@ package com.kayumars.launcher
 import android.app.Application
 
 /**
- * Deliberately empty Application class to guarantee sub-200ms cold start.
- * No SDK initialization, no dependency injection graph, no heavy work.
+ * Minimal Application: only installs the crash reporter so field crashes
+ * can be copied and reported without adb.
  */
-class LauncherApp : Application()
+class LauncherApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        CrashReporter.install(this)
+    }
+}

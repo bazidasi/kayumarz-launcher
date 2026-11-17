@@ -72,10 +72,12 @@ class ResultsAdapter(
             labelView.text = item.label
             scoreView.text = item.pkg
 
-            // Load icon asynchronously without blocking scroll
+            // Load icon asynchronously without blocking scroll; tag guard
+            // prevents a recycled row from showing another app's icon.
+            iconView.tag = item.pkg
             iconView.setImageDrawable(null)
             iconCache.loadIconAsync(item.pkg) { bitmap ->
-                iconView.setImageBitmap(bitmap)
+                if (iconView.tag == item.pkg) iconView.setImageBitmap(bitmap)
             }
 
             itemView.setOnClickListener {

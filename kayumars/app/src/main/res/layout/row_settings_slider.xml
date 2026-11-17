@@ -24,7 +24,13 @@
             android:id="@+id/settings_slider_seek"
             android:layout_width="match_parent"
             android:layout_height="36dp"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="4dp"
+            android:maxHeight="4dp"
+            android:minHeight="4dp"
+            android:progressDrawable="@drawable/seekbar_track"
+            android:splitTrack="false"
+            android:thumb="@drawable/seekbar_thumb"
+            android:thumbOffset="8dp" />
     </LinearLayout>
 
     <View

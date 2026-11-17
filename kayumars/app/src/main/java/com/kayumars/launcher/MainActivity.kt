@@ -15,8 +15,9 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Outline
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -38,7 +39,6 @@ import android.view.VelocityTracker
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.view.WindowInsetsController
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -49,11 +49,13 @@ import android.widget.GridLayout
 import android.widget.GridView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.SeekBar
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -68,9 +70,9 @@ import com.kayumars.launcher.pkg.AppIndexer
 import com.kayumars.launcher.pkg.AppMetadataHelper
 import com.kayumars.launcher.pkg.PackageChangeReceiver
 import com.kayumars.launcher.service.KayumarsLockService
+import com.kayumars.launcher.ui.BackdropBlur
 import com.kayumars.launcher.ui.IconCache
 import com.kayumars.launcher.ui.motion.BackInvokedMotion
-import com.kayumars.launcher.ui.motion.BlurGate
 import com.kayumars.launcher.ui.motion.MotionDebug
 import com.kayumars.launcher.ui.motion.MotionSpec
 import com.kayumars.launcher.ui.motion.SpringPreset
@@ -93,6 +95,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var iconCache: IconCache
     private lateinit var layoutState: IosLayoutState
+    private lateinit var backdropBlur: BackdropBlur
 
     private var themeMode = "system"
     private var iconShape = "squircle"
@@ -103,7 +106,6 @@ class MainActivity : AppCompatActivity() {
     private var gridColumns = 4
     private var dockCapacity = 4
     private var wallpaperDimPct = 0
-    private var wallpaperBlurDp = 0
     private var notifBadgesEnabled = true
     private var newDotEnabled = true
     private var spotlightSuggestionsEnabled = true
@@ -164,6 +166,8 @@ class MainActivity : AppCompatActivity() {
     private var edgeSwitchDir = 0
 
     private val uiHandler = Handler(Looper.getMainLooper())
+    // Live clock TextViews with their formats; refreshed in place on TIME_TICK (no rebuild).
+    private val clockBindings = mutableListOf<Pair<TextView, SimpleDateFormat>>()
     private val folderMergeTrigger = Runnable {
         if (isDraggingItem && !dragIsFolder && dragHoverSlotPos >= 0) {
             showMergeRingAtHomeSlot(dragSourcePageIdx, dragHoverSlotPos)
@@ -189,7 +193,12 @@ class MainActivity : AppCompatActivity() {
     private var pendingBindInfo: AppWidgetProviderInfo? = null
     private var pendingBindWidgetId = -1
 
-    private data class SettingItem(val title: String, val subtitle: String, val action: String)
+    private data class SettingItem(
+        val title: String,
+        val subtitle: String,
+        val action: String,
+        val iconRes: Int = 0
+    )
     private data class SpotlightRow(
         val type: Int,
         val header: String? = null,
@@ -210,15 +219,17 @@ class MainActivity : AppCompatActivity() {
         applySavedThemeBeforeInflation()
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        configureSystemBars()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // SDK 37 PhoneWindow.getInsetsController NPEs while decor is null; must run after setContentView.
+        configureSystemBars()
 
         Core.init(this)
         iconCache = IconCache(this)
         layoutState = IosLayoutState.load(prefs)
         loadPreferences()
+        backdropBlur = BackdropBlur(this, binding.homeShell, binding.backdropBlurView)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
@@ -234,9 +245,10 @@ class MainActivity : AppCompatActivity() {
 
         registerDynamicReceivers()
         KayumarsNotificationListener.setBadgeUpdateListener {
-            uiHandler.post { rebuildVirtualPager(currentVirtualIndex) }
+            uiHandler.post { updateBadgesInPlace() }
         }
         scanInstalledApps(false)
+        CrashReporter.showIfPresent(this)
     }
 
     override fun onStart() {
@@ -286,6 +298,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun applySavedThemeBeforeInflation() {
         themeMode = prefs.getString(PREF_THEME, "system") ?: "system"
+        applyNightModeForTheme(themeMode)
         when (themeMode) {
             "amoled" -> setTheme(R.style.Theme_Kayumars_Amoled)
             "light" -> setTheme(R.style.Theme_Kayumars_Light)
@@ -300,12 +313,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // values/ vs values-night/ colors only switch via the resolved night mode, not setTheme().
+    private fun applyNightModeForTheme(mode: String) {
+        AppCompatDelegate.setDefaultNightMode(
+            when (mode) {
+                "light" -> AppCompatDelegate.MODE_NIGHT_NO
+                "dark", "amoled" -> AppCompatDelegate.MODE_NIGHT_YES
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
+    }
+
     private fun configureSystemBars() {
+        val resolvedLight = themeMode == "light" ||
+            (themeMode == "system" &&
+                (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_NO)
+        setSystemBarsLight(resolvedLight)
+    }
+
+    private fun setSystemBarsLight(light: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val ctrl = window.insetsController ?: return
             val mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
                 WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-            ctrl.setSystemBarsAppearance(if (themeMode == "light") mask else 0, mask)
+            ctrl.setSystemBarsAppearance(if (light) mask else 0, mask)
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = if (light) {
+                window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                window.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            }
         }
     }
 
@@ -324,6 +362,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadPreferences() {
         iconShape = prefs.getString(PREF_ICON_SHAPE, "squircle") ?: "squircle"
+        iconCache.setShape(iconShape)
         showLabels = prefs.getBoolean(PREF_SHOW_LABELS, true)
         showSearchPill = prefs.getBoolean(PREF_SHOW_SEARCH_PILL, true)
         showTodayPage = prefs.getBoolean(PREF_SHOW_TODAY, true)
@@ -331,7 +370,6 @@ class MainActivity : AppCompatActivity() {
         gridColumns = prefs.getInt(PREF_GRID_COLUMNS, 4).coerceIn(4, 6)
         dockCapacity = prefs.getInt(PREF_DOCK_CAPACITY, 4).coerceIn(4, 6)
         wallpaperDimPct = prefs.getInt(PREF_WALLPAPER_DIM, 0).coerceIn(0, 40)
-        wallpaperBlurDp = prefs.getInt(PREF_WALLPAPER_BLUR, 0).coerceIn(0, 16)
         notifBadgesEnabled = prefs.getBoolean(PREF_NOTIF_BADGES, true)
         newDotEnabled = prefs.getBoolean(PREF_NEW_DOT, true)
         spotlightSuggestionsEnabled = prefs.getBoolean(PREF_SPOTLIGHT_SUGGESTIONS, true)
@@ -345,17 +383,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun initSystemSettingsList() {
         systemSettings.clear()
-        systemSettings.add(SettingItem(getString(R.string.settings), "Kayumars iOS Preferences", "kayumars://settings"))
-        systemSettings.add(SettingItem("Wi-Fi & Internet", "Wireless & cellular settings", Settings.ACTION_WIFI_SETTINGS))
-        systemSettings.add(SettingItem("Bluetooth", "Connected audio & devices", Settings.ACTION_BLUETOOTH_SETTINGS))
-        systemSettings.add(SettingItem("Display & Brightness", "Theme, font & screen", Settings.ACTION_DISPLAY_SETTINGS))
-        systemSettings.add(SettingItem("Notifications", "App alerts & listener access", Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        systemSettings.add(SettingItem("Accessibility", "Double-tap lock & motion", Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        systemSettings.add(SettingItem("Default Home App", "RoleManager home selection", Settings.ACTION_HOME_SETTINGS))
+        systemSettings.add(SettingItem(getString(R.string.settings), "Kayumars iOS Preferences", "kayumars://settings", R.drawable.ic_glyph_settings))
+        systemSettings.add(SettingItem("Wi-Fi & Internet", "Wireless & cellular settings", Settings.ACTION_WIFI_SETTINGS, R.drawable.ic_cat_internet))
+        systemSettings.add(SettingItem("Bluetooth", "Connected audio & devices", Settings.ACTION_BLUETOOTH_SETTINGS, R.drawable.ic_cat_comm))
+        systemSettings.add(SettingItem("Display & Brightness", "Theme, font & screen", Settings.ACTION_DISPLAY_SETTINGS, R.drawable.ic_cat_media))
+        systemSettings.add(SettingItem("Notifications", "App alerts & listener access", Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS, R.drawable.ic_glyph_bell))
+        systemSettings.add(SettingItem("Accessibility", "Double-tap lock & motion", Settings.ACTION_ACCESSIBILITY_SETTINGS, R.drawable.ic_visibility_off))
+        systemSettings.add(SettingItem("Default Home App", "RoleManager home selection", Settings.ACTION_HOME_SETTINGS, R.drawable.ic_home_badge))
     }
 
     private fun initAdapters() {
-        folderAdapter = SimpleCellAdapter(folderVisibleApps, true)
+        folderAdapter = SimpleCellAdapter(folderVisibleApps, false)
         binding.cardFolder.folderAppsGrid.adapter = folderAdapter
 
         spotlightSuggestionsAdapter = SimpleCellAdapter(spotlightSuggestionApps, false)
@@ -372,14 +410,10 @@ class MainActivity : AppCompatActivity() {
         motionDebug = MotionDebug(binding.motionDebugHud).apply {
             if (prefs.getBoolean(PREF_MOTION_DEBUG, false)) setEnabled(true)
         }
-        BlurGate.applyUltraThin(binding.pageDock.root)
-        BlurGate.applyChrome(binding.overlaySpotlight.root)
-        BlurGate.applyRegular(binding.cardFolder.folderModalCard)
-        BlurGate.applyMenu(binding.menuContext.menuContextCard)
 
         backInvokedMotion = BackInvokedMotion(
             activity = this,
-            activeFrontSurface = {
+            surfaceProvider = {
                 when {
                     isSettingsOpen -> binding.pageSettings.root
                     isContextMenuOpen -> binding.menuContext.menuContextCard
@@ -391,7 +425,7 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             hasActiveOverlay = { hasAnyDismissibleBackTarget() },
-            onCommitPredictiveBack = { handlePredictiveBackStep() }
+            onCommitBack = { handlePredictiveBackStep() }
         ).apply { register() }
 
         pinchDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -439,20 +473,6 @@ class MainActivity : AppCompatActivity() {
         // Folder modal listeners
         binding.cardFolder.root.setOnClickListener { closeFolder() }
         binding.cardFolder.folderModalCard.setOnClickListener { /* consume */ }
-        binding.cardFolder.folderTitleInput.setOnEditorActionListener { v, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                saveOpenFolderTitle()
-                hideKeyboard(v)
-                true
-            } else false
-        }
-        binding.cardFolder.btnFolderPrev.setOnClickListener {
-            if (openFolderPage > 0) { openFolderPage--; refreshOpenFolderGrid() }
-        }
-        binding.cardFolder.btnFolderNext.setOnClickListener {
-            val f = layoutState.findFolderById(openFolderId)
-            if (f != null && (openFolderPage + 1) * 9 < f.apps.size) { openFolderPage++; refreshOpenFolderGrid() }
-        }
         binding.cardFolder.folderAppsGrid.setOnItemClickListener { _, view, pos, _ ->
             folderVisibleApps.getOrNull(pos)?.let {
                 closeFolder()
@@ -469,7 +489,6 @@ class MainActivity : AppCompatActivity() {
         // Spotlight listeners
         binding.overlaySpotlight.btnSpotlightCancel.setOnClickListener { closeSpotlight() }
         binding.overlaySpotlight.btnSpotlightClear.setOnClickListener { binding.overlaySpotlight.spotlightInput.setText("") }
-        binding.overlaySpotlight.btnOpenSettings.setOnClickListener { openSettingsPage() }
         binding.overlaySpotlight.spotlightInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -530,6 +549,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun rebuildVirtualPager(targetVirtualIdx: Int) {
         virtualPages.clear()
+        clockBindings.clear()
         binding.homePager.removeAllViews()
 
         if (showTodayPage) {
@@ -557,6 +577,7 @@ class MainActivity : AppCompatActivity() {
         rebuildPageDots()
         rebuildDock()
         updateEditModeTopBar()
+        binding.homePager.post { balanceHomeGrids() }
     }
 
     private fun positionPagesAtOffset(dragDeltaPx: Float, animate: Boolean) {
@@ -608,7 +629,8 @@ class MainActivity : AppCompatActivity() {
         val type = virtualPages.getOrNull(currentVirtualIndex)?.type ?: PageSpec.TYPE_HOME
         val onHome = type == PageSpec.TYPE_HOME
         binding.pageDock.root.visibility = if (onHome) View.VISIBLE else View.GONE
-        binding.pageDotsRow.visibility = if (virtualPages.size > 1) View.VISIBLE else View.GONE
+        // iOS shows page dots only on the Home Screen, not on Today / App Library.
+        binding.pageDotsRow.visibility = if (onHome && virtualPages.size > 1) View.VISIBLE else View.GONE
         binding.btnOpenSearch.visibility = if (onHome && showSearchPill) View.VISIBLE else View.GONE
     }
 
@@ -634,6 +656,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupPagerTouchHandling() {
+        // A child (icon cell / card / button) consumed DOWN, so seed the pager drag state
+        // with the original DOWN coordinates when the intercept layout steals the swipe.
+        binding.homePager.onHorizontalDragStart = { x, y ->
+            touchDownX = x
+            touchDownY = y
+            isPagerDragging = true
+            isSpotlightPullDragging = false
+            pagerVelocityTracker?.recycle()
+            pagerVelocityTracker = VelocityTracker.obtain()
+        }
         binding.homePager.setOnTouchListener { _, ev ->
             pinchDetector?.onTouchEvent(ev)
             if (isDraggingItem) {
@@ -764,6 +796,23 @@ class MainActivity : AppCompatActivity() {
         return page
     }
 
+    /**
+     * iOS centres the icon block between the widget area and the dock instead of
+     * pinning it to the top of a full-height grid.
+     */
+    private fun balanceHomeGrids() {
+        val cellH = resources.getDimensionPixelSize(R.dimen.ios_cell_height)
+        val maxPad = MotionSpec.dp(this, 28f).roundToInt()
+        virtualPages.forEach { spec ->
+            if (spec.type != PageSpec.TYPE_HOME) return@forEach
+            val grid = spec.view?.findViewById<GridLayout>(R.id.home_grid_layout) ?: return@forEach
+            if (grid.height <= 0 || grid.childCount == 0) return@forEach
+            val rows = (grid.childCount + gridColumns - 1) / gridColumns
+            val pad = ((grid.height - rows * cellH) / 2).coerceIn(0, maxPad)
+            grid.setPadding(0, pad, 0, 0)
+        }
+    }
+
     private fun rebuildDock() {
         binding.pageDock.dockRow.removeAllViews()
         val max = min(dockCapacity, layoutState.dock.size)
@@ -785,7 +834,8 @@ class MainActivity : AppCompatActivity() {
         val labelView = cell.findViewById<TextView>(R.id.app_label)
         val labelRow = cell.findViewById<View>(R.id.label_row)
 
-        applyIconShapeClip(iconView)
+        // Package list for in-place badge refresh (see updateBadgeViews).
+        badgeNotif.tag = if (slot.isFolder) slot.apps.toList() else listOf(slot.pkg)
         if (!showLabels && !isDock) labelRow.visibility = View.GONE
 
         if (slot.isFolder) {
@@ -1059,6 +1109,8 @@ class MainActivity : AppCompatActivity() {
     private fun setEditMode(enabled: Boolean) {
         if (isEditMode == enabled) return
         isEditMode = enabled
+        // Cell drag gestures need horizontal moves; never intercept them in edit mode.
+        binding.homePager.interceptEnabled = !enabled
         binding.editModeBar.visibility = if (enabled) View.VISIBLE else View.GONE
         if (!enabled) cancelJiggleAnimations()
         rebuildVirtualPager(currentVirtualIndex)
@@ -1107,6 +1159,7 @@ class MainActivity : AppCompatActivity() {
         binding.cardFolder.folderModalCard.alpha = 0f
         SpringPreset.animateScale(binding.cardFolder.folderModalCard, 1f, SpringPreset.FOLDER_SPRING)
         binding.cardFolder.folderModalCard.animate().alpha(1f).setDuration(MotionSpec.DURATION_FAST_MS).start()
+        refreshBackdrop()
     }
 
     private fun refreshOpenFolderGrid() {
@@ -1119,27 +1172,33 @@ class MainActivity : AppCompatActivity() {
         val end = min(folder.apps.size, start + 9)
         for (i in start until end) appByPkg[folder.apps[i]]?.let { folderVisibleApps.add(it) }
         folderAdapter.notifyDataSetChanged()
+        val dots = binding.cardFolder.folderPageDots
+        dots.removeAllViews()
         if (totalPages > 1) {
             binding.cardFolder.folderPagerBar.visibility = View.VISIBLE
-            binding.cardFolder.tvFolderPage.text = getString(R.string.folder_page_indicator, openFolderPage + 1, totalPages)
+            val dotSize = MotionSpec.dp(this, 6f).roundToInt()
+            val margin = MotionSpec.dp(this, 4f).roundToInt()
+            for (p in 0 until totalPages) {
+                val active = p == openFolderPage
+                dots.addView(View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(dotSize, dotSize).apply { setMargins(margin, 0, margin, 0) }
+                    setBackgroundResource(R.drawable.bg_dot_blue)
+                    backgroundTintList = android.content.res.ColorStateList.valueOf(
+                        getColor(if (active) R.color.page_dot_active else R.color.page_dot_inactive)
+                    )
+                    scaleX = if (active) 1.25f else 0.9f
+                    scaleY = if (active) 1.25f else 0.9f
+                    contentDescription = getString(R.string.page_indicator_desc, p + 1, totalPages)
+                    setOnClickListener { openFolderPage = p; refreshOpenFolderGrid() }
+                })
+            }
         } else {
             binding.cardFolder.folderPagerBar.visibility = View.GONE
         }
     }
 
-    private fun saveOpenFolderTitle() {
-        val folder = layoutState.findFolderById(openFolderId) ?: return
-        val next = binding.cardFolder.folderTitleInput.text.toString().trim()
-        if (next.isNotEmpty()) {
-            folder.folderTitle = next
-            layoutState.save(prefs)
-        }
-    }
-
     private fun closeFolder() {
         if (!isFolderOpen) return
-        saveOpenFolderTitle()
-        hideKeyboard(binding.cardFolder.folderTitleInput)
         isFolderOpen = false; openFolderId = null
         SpringPreset.animateScale(binding.cardFolder.folderModalCard, 0.75f, SpringPreset.SNAP) {
             binding.cardFolder.root.visibility = View.GONE
@@ -1147,6 +1206,7 @@ class MainActivity : AppCompatActivity() {
         binding.contextScrimOverlay.animate().alpha(0f).setDuration(MotionSpec.DURATION_INSTANT_MS)
             .withEndAction { if (!isContextMenuOpen && !isOverviewOpen) binding.contextScrimOverlay.visibility = View.GONE }
             .start()
+        refreshBackdrop()
         rebuildVirtualPager(currentVirtualIndex)
     }
 
@@ -1216,6 +1276,7 @@ class MainActivity : AppCompatActivity() {
         binding.menuContext.menuContextCard.alpha = 0f
         SpringPreset.animateScale(binding.menuContext.menuContextCard, 1f, SpringPreset.MENU_SPRING)
         binding.menuContext.menuContextCard.animate().alpha(1f).setDuration(MotionSpec.DURATION_INSTANT_MS).start()
+        refreshBackdrop()
     }
 
     private fun positionMenuNearAnchor(anchorView: View) {
@@ -1226,6 +1287,8 @@ class MainActivity : AppCompatActivity() {
         val margin = MotionSpec.dp(this, 16f).roundToInt()
         val loc = IntArray(2)
         anchorView.getLocationOnScreen(loc)
+        // Margins are absolute; pin gravity to TOP|LEFT so RTL START->RIGHT doesn't mirror them.
+        lp.gravity = Gravity.TOP or Gravity.LEFT
         lp.leftMargin = loc[0].coerceIn(margin, (screenW - menuW - margin).coerceAtLeast(margin))
         val estH = MotionSpec.dp(this, 320f).roundToInt()
         var y = loc[1] + anchorView.height + MotionSpec.dp(this, 8f).roundToInt()
@@ -1288,11 +1351,27 @@ class MainActivity : AppCompatActivity() {
         liftedContextAnchor = null
         binding.menuContext.root.visibility = View.GONE
         if (!isFolderOpen && !isOverviewOpen) binding.contextScrimOverlay.visibility = View.GONE
+        refreshBackdrop()
+    }
+
+    /**
+     * The workspace blurs once for every overlay on top of it; the scrim only
+     * dims when there is no blur to separate the layers (snapshot fallback
+     * keeps working, the blur itself is the separation).
+     */
+    private fun refreshBackdrop() {
+        val anyOverlay = isSpotlightOpen || isFolderOpen || isContextMenuOpen ||
+            isOverviewOpen || isWidgetPickerOpen
+        if (anyOverlay) backdropBlur.show() else backdropBlur.hide()
+        binding.contextScrimOverlay.setBackgroundColor(
+            if (anyOverlay) Color.TRANSPARENT else getColor(R.color.scrim_dim_60)
+        )
     }
 
     private fun openSpotlight() {
         if (isSpotlightOpen) return
         isSpotlightOpen = true
+        resetSurfaceTransform(binding.overlaySpotlight.spotlightSheet)
         binding.overlaySpotlight.spotlightInput.setText("")
         binding.overlaySpotlight.root.visibility = View.VISIBLE
         binding.overlaySpotlight.root.alpha = 0f
@@ -1305,6 +1384,8 @@ class MainActivity : AppCompatActivity() {
             (getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager)
                 ?.showSoftInput(binding.overlaySpotlight.spotlightInput, InputMethodManager.SHOW_IMPLICIT)
         }, 80L)
+        setSystemBarsLight(false) // Spotlight sheet is dark in both themes.
+        refreshBackdrop()
     }
 
     private fun closeSpotlight() {
@@ -1312,7 +1393,7 @@ class MainActivity : AppCompatActivity() {
         isSpotlightOpen = false
         hideKeyboard(binding.overlaySpotlight.spotlightInput)
         binding.overlaySpotlight.root.animate().alpha(0f).setDuration(MotionSpec.DURATION_FAST_MS)
-            .withEndAction { binding.overlaySpotlight.root.visibility = View.GONE }.start()
+            .withEndAction { binding.overlaySpotlight.root.visibility = View.GONE; configureSystemBars(); refreshBackdrop() }.start()
     }
 
     private fun runSpotlightSearch(query: String) {
@@ -1326,6 +1407,7 @@ class MainActivity : AppCompatActivity() {
                 val tops = fetchTopAppsFromCoreOrFallback(8)
                 spotlightSuggestionApps.addAll(tops)
                 spotlightSuggestionsAdapter.notifyDataSetChanged()
+                if (tops.isNotEmpty()) fitSpotlightGrid(binding.overlaySpotlight.spotlightSuggestionsGrid)
                 binding.overlaySpotlight.spotlightSuggestionsBlock.visibility = if (tops.isEmpty()) View.GONE else View.VISIBLE
             } else binding.overlaySpotlight.spotlightSuggestionsBlock.visibility = View.GONE
             if (spotlightSettingsEnabled) {
@@ -1360,6 +1442,7 @@ class MainActivity : AppCompatActivity() {
         if (matchedApps.size > 6) {
             spotlightGridApps.addAll(matchedApps.drop(1).take(8))
             spotlightGridAdapter.notifyDataSetChanged()
+            fitSpotlightGrid(binding.overlaySpotlight.spotlightAppsGrid)
             binding.overlaySpotlight.spotlightAppsGridBlock.visibility = View.VISIBLE
         } else {
             binding.overlaySpotlight.spotlightAppsGridBlock.visibility = View.GONE
@@ -1373,6 +1456,20 @@ class MainActivity : AppCompatActivity() {
             matchedSettings.forEach { spotlightRows.add(SpotlightRow(ROW_TYPE_SETTING, setting = it)) }
         }
         spotlightResultsAdapter.notifyDataSetChanged()
+    }
+
+    /**
+     * GridView's wrap_content only measures one row; reserve the full row height
+     * so a second suggestion row never clips its labels.
+     */
+    private fun fitSpotlightGrid(grid: GridView) {
+        val rows = ((grid.adapter?.count ?: 0) + 3) / 4
+        if (rows <= 0) return
+        val rowH = MotionSpec.dp(this, 86f).toInt()
+        grid.layoutParams = grid.layoutParams.apply {
+            height = rows * rowH + grid.paddingTop + grid.paddingBottom +
+                grid.verticalSpacing * (rows - 1)
+        }
     }
 
     private fun fetchTopAppsFromCoreOrFallback(maxCount: Int): List<AppEntry> {
@@ -1415,11 +1512,13 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        // Rust core classifies the whole installed set; missing entries land in OTHER.
+        val categoryByPkg = AppMetadataHelper.classifyApps(allApps)
         val buckets = mutableMapOf<String, MutableList<AppEntry>>()
         AppMetadataHelper.LibraryCategory.entries.forEach { buckets[it.key] = mutableListOf() }
         buckets["SUGGESTIONS"]?.addAll(fetchTopAppsFromCoreOrFallback(8))
         allApps.filterNot { layoutState.hiddenLibraryPkgs.contains(it.pkg) }.forEach { app ->
-            buckets[AppMetadataHelper.classifyApp(app).key]?.add(app)
+            buckets[categoryByPkg[app.pkg] ?: "OTHER"]?.add(app)
         }
 
         layoutState.ensureDefaultCategoryOrder()
@@ -1433,29 +1532,22 @@ class MainActivity : AppCompatActivity() {
             val tile = LayoutInflater.from(this).inflate(R.layout.item_library_tile, categoriesGrid, false)
             val glp = GridLayout.LayoutParams().apply {
                 width = 0; height = ViewGroup.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(tileIdx % 2, 1f)
-                rowSpec = GridLayout.spec(tileIdx / 2)
+                columnSpec = GridLayout.spec(tileIdx % 3, 1f)
+                rowSpec = GridLayout.spec(tileIdx / 3)
+                val gap = MotionSpec.dp(this@MainActivity, 5f).roundToInt()
+                setMargins(gap, gap, gap, gap)
             }
             tileIdx++
-            BlurGate.applyThin(tile.findViewById(R.id.lib_tile_card))
             tile.findViewById<TextView>(R.id.lib_tile_label).text = getString(cat.titleRes)
+            tile.findViewById<TextView>(R.id.lib_tile_count).text = catApps.size.toString()
 
-            val largeIds = intArrayOf(R.id.lib_icon_0, R.id.lib_icon_1, R.id.lib_icon_2)
-            val miniIds = intArrayOf(R.id.lib_mini_0, R.id.lib_mini_1, R.id.lib_mini_2, R.id.lib_mini_3)
-            largeIds.forEachIndexed { j, id ->
+            val previewIds = intArrayOf(
+                R.id.lib_preview_0, R.id.lib_preview_1, R.id.lib_preview_2, R.id.lib_preview_3
+            )
+            previewIds.forEachIndexed { j, id ->
                 val iv = tile.findViewById<ImageView>(id)
-                applyIconShapeClip(iv)
                 val target = catApps.getOrNull(j)
-                if (target != null) {
-                    loadAppIconAsync(target.pkg, iv)
-                    iv.setOnClickListener { launchAppWithFeedback(it, target.pkg, false) }
-                } else iv.visibility = View.INVISIBLE
-            }
-            miniIds.forEachIndexed { j, id ->
-                val mv = tile.findViewById<ImageView>(id)
-                applyIconShapeClip(mv)
-                val target = catApps.getOrNull(3 + j)
-                if (target != null) loadAppIconAsync(target.pkg, mv) else mv.visibility = View.INVISIBLE
+                if (target != null) loadAppIconAsync(target.pkg, iv) else iv.visibility = View.INVISIBLE
             }
             tile.setOnClickListener {
                 expandedLibraryCategory = key
@@ -1500,12 +1592,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun buildTodayPageView(): View {
         val page = LayoutInflater.from(this).inflate(R.layout.page_today, binding.homePager, false)
-        page.findViewById<TextView>(R.id.today_date_headline).text =
-            SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date())
-        page.findViewById<View>(R.id.btn_today_add_widget).setOnClickListener { openWidgetPicker("today") }
+        val headline = page.findViewById<TextView>(R.id.today_date_headline)
+        val headlineFmt = SimpleDateFormat("EEEE, MMM d", Locale.getDefault())
+        headline.text = headlineFmt.format(Date())
+        clockBindings.add(headline to headlineFmt)
         val container = page.findViewById<LinearLayout>(R.id.today_widgets_container)
-        page.findViewById<View>(R.id.today_empty_hint).visibility =
-            if (layoutState.todayWidgets.isEmpty()) View.VISIBLE else View.GONE
+        val emptyHint = page.findViewById<View>(R.id.today_empty_hint)
+        emptyHint.visibility = if (layoutState.todayWidgets.isEmpty()) View.VISIBLE else View.GONE
+        // The pill chrome is gone (iOS has none); long-press is the add-widget entry.
+        emptyHint.setOnLongClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            openWidgetPicker("today")
+            true
+        }
 
         val gutter = MotionSpec.dp(this, 8f).roundToInt()
         layoutState.todayWidgets.forEach { w ->
@@ -1525,11 +1624,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun buildWidgetCardView(w: IosLayoutState.WidgetSlot, isHomeSlot: Boolean): View {
         val card = FrameLayout(this).apply {
-            setBackgroundResource(R.drawable.bg_library_tile)
+            setBackgroundResource(R.drawable.bg_today_card)
             val pad = MotionSpec.dp(this@MainActivity, 14f).roundToInt()
             setPadding(pad, pad, pad, pad)
         }
-        BlurGate.applyThin(card)
 
         when {
             w.kind == IosLayoutState.WIDGET_APPWIDGET && w.appWidgetId > 0 -> {
@@ -1542,16 +1640,20 @@ class MainActivity : AppCompatActivity() {
             }
             w.kind == IosLayoutState.WIDGET_CLOCK -> {
                 val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+                val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+                val dateFmt = SimpleDateFormat("EEEE · MMMM d", Locale.getDefault())
                 ll.addView(TextView(this).apply {
-                    text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                    text = timeFmt.format(Date())
                     textSize = 34f
                     setTextColor(getColor(R.color.label_primary))
                     setTypeface(typeface, Typeface.BOLD)
+                    clockBindings.add(this to timeFmt)
                 })
                 ll.addView(TextView(this).apply {
-                    text = SimpleDateFormat("EEEE · MMMM d", Locale.getDefault()).format(Date())
+                    text = dateFmt.format(Date())
                     textSize = 14f
                     setTextColor(getColor(R.color.label_secondary))
+                    clockBindings.add(this to dateFmt)
                 })
                 card.addView(ll)
             }
@@ -1566,7 +1668,6 @@ class MainActivity : AppCompatActivity() {
                     val item = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
                     val isz = MotionSpec.dp(this@MainActivity, 44f).roundToInt()
                     val iv = ImageView(this).apply { layoutParams = LinearLayout.LayoutParams(isz, isz) }
-                    applyIconShapeClip(iv)
                     loadAppIconAsync(a.pkg, iv)
                     item.addView(iv)
                     item.addView(TextView(this).apply {
@@ -1595,37 +1696,62 @@ class MainActivity : AppCompatActivity() {
         }
         card.setOnLongClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            showWidgetOptionsDialog(w, isHomeSlot)
+            showWidgetOptionsDialog(it, w, isHomeSlot)
             true
         }
         return card
     }
 
-    private fun showWidgetOptionsDialog(w: IosLayoutState.WidgetSlot, isHomeSlot: Boolean) {
-        val options = arrayOf(
-            getString(R.string.widget_resize_small),
-            getString(R.string.widget_resize_medium),
-            getString(R.string.widget_resize_large),
-            getString(R.string.remove_from_home)
-        )
-        AlertDialog.Builder(this).setTitle(w.label).setItems(options) { _, which ->
-            when (which) {
-                0 -> w.span = IosLayoutState.SPAN_SMALL
-                1 -> w.span = IosLayoutState.SPAN_MEDIUM
-                2 -> w.span = IosLayoutState.SPAN_LARGE
-                3 -> {
-                    if (w.appWidgetId > 0) try { appWidgetHost?.deleteAppWidgetId(w.appWidgetId) } catch (_: Exception) {}
-                    if (isHomeSlot) layoutState.homeWidget = null else layoutState.todayWidgets.remove(w)
-                }
-            }
+    /** iOS rounded context card for widget actions, replacing the stock AlertDialog. */
+    private fun showWidgetOptionsDialog(anchorView: View, w: IosLayoutState.WidgetSlot, isHomeSlot: Boolean) {
+        if (isContextMenuOpen) dismissIosContextMenu()
+        isContextMenuOpen = true
+        liftedContextAnchor = anchorView
+        SpringPreset.animateScale(anchorView, 1.06f, SpringPreset.MENU_SPRING)
+        anchorView.elevation = MotionSpec.dp(this, 6f)
+
+        binding.menuContext.menuAppTitle.text = w.label
+        binding.menuContext.menuShortcutsContainer.removeAllViews()
+        binding.menuContext.menuActionsContainer.removeAllViews()
+
+        fun choose(span: String) {
+            dismissIosContextMenu()
+            w.span = span
             layoutState.save(prefs)
             rebuildVirtualPager(currentVirtualIndex)
-        }.show()
+        }
+        addContextMenuRow(binding.menuContext.menuActionsContainer, getString(R.string.widget_resize_small), null, 0, false) {
+            choose(IosLayoutState.SPAN_SMALL)
+        }
+        addContextMenuRow(binding.menuContext.menuActionsContainer, getString(R.string.widget_resize_medium), null, 0, false) {
+            choose(IosLayoutState.SPAN_MEDIUM)
+        }
+        addContextMenuRow(binding.menuContext.menuActionsContainer, getString(R.string.widget_resize_large), null, 0, false) {
+            choose(IosLayoutState.SPAN_LARGE)
+        }
+        addContextMenuRow(binding.menuContext.menuActionsContainer, getString(R.string.remove_from_home), null, R.drawable.ic_glyph_minus, true) {
+            dismissIosContextMenu()
+            if (w.appWidgetId > 0) try { appWidgetHost?.deleteAppWidgetId(w.appWidgetId) } catch (_: Exception) {}
+            if (isHomeSlot) layoutState.homeWidget = null else layoutState.todayWidgets.remove(w)
+            layoutState.save(prefs)
+            rebuildVirtualPager(currentVirtualIndex)
+        }
+
+        binding.contextScrimOverlay.visibility = View.VISIBLE
+        positionMenuNearAnchor(anchorView)
+        binding.menuContext.root.visibility = View.VISIBLE
+        binding.menuContext.menuContextCard.scaleX = 0.84f
+        binding.menuContext.menuContextCard.scaleY = 0.84f
+        binding.menuContext.menuContextCard.alpha = 0f
+        SpringPreset.animateScale(binding.menuContext.menuContextCard, 1f, SpringPreset.MENU_SPRING)
+        binding.menuContext.menuContextCard.animate().alpha(1f).setDuration(MotionSpec.DURATION_INSTANT_MS).start()
+        refreshBackdrop()
     }
 
     private fun openWidgetPicker(target: String) {
         widgetPickerTarget = target
         isWidgetPickerOpen = true
+        resetSurfaceTransform(binding.sheetWidgetPicker.root)
         binding.sheetWidgetPicker.root.visibility = View.VISIBLE
         binding.sheetWidgetPicker.widgetPickerList.removeAllViews()
         addPickerOptionRow(getString(R.string.widget_clock_title), "Offline Digital Clock") {
@@ -1643,6 +1769,7 @@ class MainActivity : AppCompatActivity() {
                 addPickerOptionRow(label, "${info.minWidth}x${info.minHeight}dp") { bindAndroidAppWidget(info) }
             }
         } catch (_: Exception) {}
+        refreshBackdrop()
     }
 
     private fun addPickerOptionRow(title: String, sub: String, onClick: () -> Unit) {
@@ -1696,27 +1823,50 @@ class MainActivity : AppCompatActivity() {
     private fun closeWidgetPicker() {
         isWidgetPickerOpen = false
         binding.sheetWidgetPicker.root.visibility = View.GONE
+        refreshBackdrop()
     }
 
     private fun openPageOverview() {
         if (isOverviewOpen) return
         isOverviewOpen = true
+        resetSurfaceTransform(binding.overlayPageOverview.root)
         binding.contextScrimOverlay.visibility = View.VISIBLE
         binding.overlayPageOverview.root.visibility = View.VISIBLE
         binding.overlayPageOverview.overviewPagesRow.removeAllViews()
         val cw = MotionSpec.dp(this, 132f).roundToInt()
         val ch = MotionSpec.dp(this, 196f).roundToInt()
         val margin = MotionSpec.dp(this, 10f).roundToInt()
+        val cell = MotionSpec.dp(this, 26f).roundToInt()
+        val cellPad = MotionSpec.dp(this, 4f).roundToInt()
         layoutState.pages.forEachIndexed { idx, slots ->
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
                 setBackgroundResource(R.drawable.bg_library_tile)
+                setPadding(cellPad, cellPad, cellPad, cellPad)
+                contentDescription = getString(R.string.page_indicator_desc, idx + 1, layoutState.pages.size)
                 setOnClickListener { closePageOverview(); snapToVirtualPage(homePageIndexToVirtual(idx), 0f) }
             }
-            card.addView(TextView(this).apply { text = "Page ${idx + 1}"; textSize = 15f; setTextColor(getColor(R.color.label_primary)); setTypeface(typeface, Typeface.BOLD) })
-            card.addView(TextView(this).apply { text = "${slots.size} items"; textSize = 12f; setTextColor(getColor(R.color.label_secondary)) })
+            // Real page content: the icons actually placed on that page, not a "Page N" label.
+            val mini = GridLayout(this).apply { columnCount = 4; rowCount = 6 }
+            slots.take(24).forEachIndexed { i, slot ->
+                val pkg = if (slot.isFolder) slot.apps.firstOrNull() else slot.pkg
+                if (pkg == null) return@forEachIndexed
+                val iv = ImageView(this).apply {
+                    layoutParams = GridLayout.LayoutParams().apply {
+                        width = cell; height = cell
+                        columnSpec = GridLayout.spec(i % 4)
+                        rowSpec = GridLayout.spec(i / 4)
+                        setMargins(3, 3, 3, 3)
+                    }
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                }
+                loadAppIconAsync(pkg, iv)
+                mini.addView(iv)
+            }
+            card.addView(mini)
             binding.overlayPageOverview.overviewPagesRow.addView(card, LinearLayout.LayoutParams(cw, ch).apply { setMargins(margin, 0, margin, 0) })
         }
+        refreshBackdrop()
     }
 
     private fun closePageOverview() {
@@ -1724,10 +1874,12 @@ class MainActivity : AppCompatActivity() {
         isOverviewOpen = false
         binding.overlayPageOverview.root.visibility = View.GONE
         if (!isContextMenuOpen && !isFolderOpen) binding.contextScrimOverlay.visibility = View.GONE
+        refreshBackdrop()
     }
 
     private fun openSettingsPage() {
         isSettingsOpen = true
+        resetSurfaceTransform(binding.pageSettings.root)
         buildSettingsUi()
         binding.pageSettings.root.visibility = View.VISIBLE
         binding.pageSettings.root.translationY = MotionSpec.dp(this, 48f)
@@ -1751,25 +1903,13 @@ class MainActivity : AppCompatActivity() {
         val app = addSettingsSection(getString(R.string.settings_section_appearance))
         addSettingsItem(app, getString(R.string.theme_title), formatThemeLabel(themeMode)) { showThemeChoiceDialog() }
         addSettingsItem(app, getString(R.string.icon_shape_title), formatShapeLabel(iconShape)) { showIconShapeDialog() }
-        addSettingsSwitch(app, getString(R.string.blur_materials_title), null, BlurGate.isUserBlurEnabled(this)) { checked ->
-            BlurGate.setUserBlurEnabled(this, checked)
-            BlurGate.applyUltraThin(binding.pageDock.root)
-            BlurGate.applyChrome(binding.overlaySpotlight.root)
-            BlurGate.applyRegular(binding.cardFolder.folderModalCard)
-            BlurGate.applyMenu(binding.menuContext.menuContextCard)
-            applyWallpaperVisuals()
-        }
         addSettingsSwitch(app, getString(R.string.show_icon_labels_title), null, showLabels) { checked ->
             showLabels = checked; prefs.edit().putBoolean(PREF_SHOW_LABELS, checked).apply()
             rebuildVirtualPager(currentVirtualIndex)
         }
-        addSettingsSlider(app, getString(R.string.wallpaper_dim_title, wallpaperDimPct), 40, wallpaperDimPct) { v, tv ->
+        addSettingsSlider(app, getString(R.string.wallpaper_dim_title, wallpaperDimPct), 40, wallpaperDimPct, isLast = true) { v, tv ->
             wallpaperDimPct = v; tv.text = getString(R.string.wallpaper_dim_title, v)
             prefs.edit().putInt(PREF_WALLPAPER_DIM, v).apply(); applyWallpaperVisuals()
-        }
-        addSettingsSlider(app, getString(R.string.wallpaper_blur_title, wallpaperBlurDp), 16, wallpaperBlurDp, isLast = true) { v, tv ->
-            wallpaperBlurDp = v; tv.text = getString(R.string.wallpaper_blur_title, v)
-            prefs.edit().putInt(PREF_WALLPAPER_BLUR, v).apply(); applyWallpaperVisuals()
         }
 
         val home = addSettingsSection(getString(R.string.settings_section_home))
@@ -1868,7 +2008,7 @@ class MainActivity : AppCompatActivity() {
         row.findViewById<TextView>(R.id.settings_switch_title).text = title
         val subTv = row.findViewById<TextView>(R.id.settings_switch_subtitle)
         if (!sub.isNullOrEmpty()) { subTv.text = sub; subTv.visibility = View.VISIBLE }
-        val sw = row.findViewById<Switch>(R.id.settings_switch_toggle)
+        val sw = row.findViewById<SwitchCompat>(R.id.settings_switch_toggle)
         sw.isChecked = checked
         row.findViewById<View>(R.id.settings_switch_divider).visibility = if (isLast) View.GONE else View.VISIBLE
         sw.setOnCheckedChangeListener { _, isChecked -> onChanged(isChecked) }
@@ -1908,7 +2048,9 @@ class MainActivity : AppCompatActivity() {
         val keys = arrayOf("system", "light", "dark", "amoled")
         val labels = arrayOf(getString(R.string.theme_system), getString(R.string.theme_light), getString(R.string.theme_dark), getString(R.string.theme_amoled))
         AlertDialog.Builder(this).setTitle(R.string.theme_title).setItems(labels) { _, which ->
-            prefs.edit().putString(PREF_THEME, keys[which]).apply(); recreate()
+            prefs.edit().putString(PREF_THEME, keys[which]).apply()
+            applyNightModeForTheme(keys[which])
+            recreate()
         }.show()
     }
 
@@ -1917,6 +2059,7 @@ class MainActivity : AppCompatActivity() {
         val labels = arrayOf(getString(R.string.icon_shape_squircle), getString(R.string.icon_shape_circle), getString(R.string.icon_shape_rounded_square), getString(R.string.icon_shape_system))
         AlertDialog.Builder(this).setTitle(R.string.icon_shape_title).setItems(labels) { _, which ->
             iconShape = keys[which]; prefs.edit().putString(PREF_ICON_SHAPE, iconShape).apply()
+            iconCache.setShape(iconShape)
             buildSettingsUi(); rebuildVirtualPager(currentVirtualIndex)
         }.show()
     }
@@ -1953,33 +2096,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun confirmResetHistory() {
         AlertDialog.Builder(this).setTitle(R.string.reset_history).setMessage(R.string.reset_history_confirm)
-            .setPositiveButton(R.string.confirm) { _, _ -> scanInstalledApps(false) }
+            .setPositiveButton(R.string.confirm) { _, _ ->
+                Core.resetHistory()
+                rebuildVirtualPager(currentVirtualIndex)
+            }
             .setNegativeButton(R.string.cancel, null).show()
     }
 
     private fun applyWallpaperVisuals() {
         val alpha = ((wallpaperDimPct / 100f) * 255f).roundToInt()
         binding.wallpaperDimScrim.setBackgroundColor(Color.argb(alpha, 0, 0, 0))
-        BlurGate.applyWallpaperBlur(binding.wallpaperBlurLayer, wallpaperBlurDp)
-    }
-
-    private fun applyIconShapeClip(v: View) {
-        if (iconShape == "system") {
-            v.clipToOutline = false; v.outlineProvider = ViewOutlineProvider.BACKGROUND; return
-        }
-        v.outlineProvider = object : ViewOutlineProvider() {
-            override fun getOutline(view: View, outline: Outline) {
-                if (view.width <= 0 || view.height <= 0) return
-                val m = min(view.width, view.height).toFloat()
-                val r = when (iconShape) {
-                    "circle" -> m * 0.5f
-                    "rounded_square" -> m * 0.16f
-                    else -> m * 0.225f
-                }
-                outline.setRoundRect(0, 0, view.width, view.height, r)
-            }
-        }
-        v.clipToOutline = true
     }
 
     private fun scanInstalledApps(detectNewlyInstalled: Boolean) {
@@ -2030,7 +2156,16 @@ class MainActivity : AppCompatActivity() {
         return currentVirtualIndex != homePageIndexToVirtual(0)
     }
 
+    // Predictive back scales/fades the active surface; restore it before re-showing.
+    private fun resetSurfaceTransform(v: View) {
+        v.scaleX = 1f
+        v.scaleY = 1f
+        v.alpha = 1f
+    }
+
     private fun handlePredictiveBackStep(): Boolean {
+        // homePager itself is the back surface when no overlay is open (page snap / edit mode).
+        resetSurfaceTransform(binding.homePager)
         if (isSettingsOpen) { closeSettingsPage(); return true }
         if (isContextMenuOpen) { dismissIosContextMenu(); return true }
         if (isFolderOpen) { closeFolder(); return true }
@@ -2053,6 +2188,7 @@ class MainActivity : AppCompatActivity() {
         if (isOverviewOpen) closePageOverview()
         if (isEditMode) setEditMode(false)
         snapToVirtualPage(homePageIndexToVirtual(0), 0f)
+        refreshBackdrop()
     }
 
     private fun shouldShowDefaultHomePrompt(): Boolean {
@@ -2119,9 +2255,40 @@ class MainActivity : AppCompatActivity() {
         (getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(v.windowToken, 0)
     }
 
+    private fun updateClockTexts() {
+        val now = Date()
+        clockBindings.forEach { (tv, fmt) -> tv.text = fmt.format(now) }
+    }
+
+    private fun updateBadgesInPlace() {
+        updateBadgeViews(binding.rootLayout)
+    }
+
+    private fun updateBadgeViews(v: View) {
+        if (v is TextView && v.id == R.id.badge_notif_count) {
+            val pkgs = (v.tag as? List<*>)?.filterIsInstance<String>() ?: return
+            val cnt = pkgs.sumOf {
+                KayumarsNotificationListener.getBadgeCount(it, notifBadgesEnabled, layoutState.mutedBadgePkgs)
+            }
+            if (cnt > 0 && !isEditMode) {
+                v.visibility = View.VISIBLE
+                v.text = if (cnt > 99) "99+" else cnt.toString()
+            } else v.visibility = View.GONE
+            return
+        }
+        if (v is ViewGroup) {
+            for (i in 0 until v.childCount) updateBadgeViews(v.getChildAt(i))
+        }
+    }
+
     private fun registerDynamicReceivers() {
         if (receiversRegistered) return
-        packageReceiver = PackageChangeReceiver()
+        packageReceiver = PackageChangeReceiver { pkg ->
+            iconCache.invalidate(pkg)
+            // Full rescan + UI rebuild on the main thread (scanAsync callback), so installs
+            // and uninstalls refresh the app list while the launcher is alive.
+            scanInstalledApps(true)
+        }
         val pf = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
             addAction(Intent.ACTION_PACKAGE_REPLACED); addDataScheme("package")
@@ -2131,7 +2298,7 @@ class MainActivity : AppCompatActivity() {
 
         timeTickReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                if (showTodayPage && currentVirtualIndex == 0) rebuildVirtualPager(0)
+                updateClockTexts()
             }
         }
         registerReceiver(timeTickReceiver, IntentFilter(Intent.ACTION_TIME_TICK))
@@ -2159,7 +2326,6 @@ class MainActivity : AppCompatActivity() {
             val label = v.findViewById<TextView>(R.id.app_label)
             val badgeNotif = v.findViewById<TextView>(R.id.badge_notif_count)
             val badgeWork = v.findViewById<ImageView>(R.id.badge_work_profile)
-            applyIconShapeClip(icon)
             loadAppIconAsync(app.pkg, icon)
             label.text = app.label
             if (!whiteLabelOverWallpaper) {
@@ -2167,6 +2333,7 @@ class MainActivity : AppCompatActivity() {
                 label.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
             }
             val cnt = KayumarsNotificationListener.getBadgeCount(app.pkg, notifBadgesEnabled, layoutState.mutedBadgePkgs)
+            badgeNotif.tag = listOf(app.pkg)
             if (cnt > 0) {
                 badgeNotif.visibility = View.VISIBLE; badgeNotif.text = if (cnt > 99) "99+" else cnt.toString()
             } else badgeNotif.visibility = View.GONE
@@ -2200,13 +2367,13 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             if (row.type == ROW_TYPE_SETTING && row.setting != null) {
-                icon.setImageResource(R.drawable.ic_glyph_settings)
+                icon.setImageResource(row.setting.iconRes.takeIf { it != 0 } ?: R.drawable.ic_glyph_settings)
                 icon.setColorFilter(getColor(R.color.system_blue))
                 title.text = row.setting.title
                 sub.text = row.setting.subtitle; sub.visibility = View.VISIBLE
                 action.visibility = View.GONE; chevron.visibility = View.VISIBLE
             } else if (row.app != null) {
-                icon.clearColorFilter(); applyIconShapeClip(icon); loadAppIconAsync(row.app.pkg, icon)
+                icon.clearColorFilter(); loadAppIconAsync(row.app.pkg, icon)
                 title.text = row.app.label
                 sub.text = if (row.type == ROW_TYPE_TOP_HIT) getString(R.string.spotlight_top_hit) else row.app.pkg
                 sub.visibility = View.VISIBLE
@@ -2228,7 +2395,6 @@ class MainActivity : AppCompatActivity() {
         private const val PREF_GRID_COLUMNS = "ios_grid_columns"
         private const val PREF_DOCK_CAPACITY = "ios_dock_capacity"
         private const val PREF_WALLPAPER_DIM = "ios_wallpaper_dim"
-        private const val PREF_WALLPAPER_BLUR = "ios_wallpaper_blur"
         private const val PREF_NOTIF_BADGES = "ios_notif_badges"
         private const val PREF_NEW_DOT = "ios_new_app_dot"
         private const val PREF_SPOTLIGHT_SUGGESTIONS = "ios_spotlight_suggestions"

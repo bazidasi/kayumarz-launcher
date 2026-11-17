@@ -82,6 +82,11 @@ impl StateStore {
             bincode::serialize_into(&mut writer, state)
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
             writer.flush()?;
+            // Durability: without fsync a power loss after rename can leave a zero-length file.
+            writer
+                .into_inner()
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+                .sync_all()?;
         }
 
         fs::rename(temp_path, final_path)?;

@@ -244,8 +244,12 @@ class IosLayoutState {
             return true
         }
         val combined = mutableListOf(dst.pkg).apply { if (src.pkg != dst.pkg) add(src.pkg) }
-        page[toPos] = HomeSlot.folder("f_${System.currentTimeMillis()}", defaultFolderTitle, combined)
+        val folder = HomeSlot.folder("f_${System.currentTimeMillis()}", defaultFolderTitle, combined)
+        // Remove both slots first, then insert at toPos (final-list index, same convention as
+        // reorderSlot) so the folder lands on the drop target's cell even when fromPos < toPos.
         page.removeAt(fromPos)
+        page.removeAt(if (fromPos < toPos) toPos - 1 else toPos)
+        page.add(toPos, folder)
         return true
     }
 
@@ -273,7 +277,23 @@ class IosLayoutState {
         dock.add(pkg)
     }
 
+    /**
+     * Idempotent migration for state persisted by older builds that appended the
+     * same built-in widget twice. Keeps the first of each built-in kind and every
+     * bound Android widget; never touches user ordering.
+     */
+    fun dedupeTodayWidgets() {
+        val seen = mutableSetOf<String>()
+        val it = todayWidgets.iterator()
+        while (it.hasNext()) {
+            val w = it.next()
+            if (w.kind == WIDGET_APPWIDGET) continue
+            if (!seen.add(w.kind)) it.remove()
+        }
+    }
+
     fun ensureDefaultTodayWidgets() {
+        dedupeTodayWidgets()
         if (todayWidgets.isNotEmpty()) return
         todayWidgets.add(WidgetSlot("w_clock", WIDGET_CLOCK, -1, "Clock & Date", SPAN_MEDIUM))
         todayWidgets.add(WidgetSlot("w_suggestions", WIDGET_SUGGESTIONS, -1, "App Suggestions", SPAN_MEDIUM))
@@ -281,8 +301,11 @@ class IosLayoutState {
     }
 
     fun ensureDefaultCategoryOrder() {
-        if (libraryCategoryOrder.isNotEmpty()) return
-        libraryCategoryOrder.addAll(listOf("SUGGESTIONS", "PRODUCTIVITY", "SOCIAL", "CREATIVITY", "UTILITIES", "OTHER"))
+        // Append buckets added after the state was first persisted (e.g. GAMES),
+        // keeping the user's existing order and never duplicating.
+        DEFAULT_CATEGORY_ORDER.forEach { key ->
+            if (!libraryCategoryOrder.contains(key)) libraryCategoryOrder.add(key)
+        }
     }
 
     fun cycleLibraryCategoryOrder() {
@@ -295,6 +318,8 @@ class IosLayoutState {
 
     companion object {
         const val KIND_APP = "app"
+        private val DEFAULT_CATEGORY_ORDER =
+            listOf("SUGGESTIONS", "PRODUCTIVITY", "SOCIAL", "CREATIVITY", "GAMES", "UTILITIES", "OTHER")
         const val KIND_FOLDER = "folder"
         const val WIDGET_CLOCK = "clock"
         const val WIDGET_SUGGESTIONS = "suggestions"
@@ -383,6 +408,9 @@ class IosLayoutState {
                 state.dock.clear()
             }
             state.ensureDefaultCategoryOrder()
+            // Migration must run on every load: initialized states can still carry
+            // duplicate built-in widgets from older builds.
+            state.dedupeTodayWidgets()
             if (!state.initialized && state.todayWidgets.isEmpty()) state.ensureDefaultTodayWidgets()
             if (state.pages.isEmpty()) state.pages.add(mutableListOf())
             return state

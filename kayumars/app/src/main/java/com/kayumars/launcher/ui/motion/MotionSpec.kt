@@ -35,12 +35,7 @@ object MotionSpec {
     const val TAB_SHIFT_DP = 8f
     const val BLUR_RADIUS_DP = 16f
 
-    // iOS Material Blur Radii & Jiggle Edit-Mode Tokens
-    const val BLUR_ULTRA_THIN_DP = 24f
-    const val BLUR_CHROME_DP = 30f
-    const val BLUR_REGULAR_DP = 18f
-    const val BLUR_MENU_DP = 20f
-    const val BLUR_THIN_DP = 16f
+    // Jiggle Edit-Mode Tokens
     const val JIGGLE_ANGLE_DEG = 1.5f
     const val JIGGLE_PERIOD_MS = 350L
     const val JIGGLE_STAGGER_MS = 40L

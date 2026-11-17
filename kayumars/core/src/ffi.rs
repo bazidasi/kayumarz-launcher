@@ -128,6 +128,12 @@ impl Kayumars {
         self.debounced_save();
     }
 
+    /// Clears all launch history and immediately persists the empty state.
+    pub fn reset_history(&self) {
+        self.history.reset();
+        self.save_now();
+    }
+
     /// Returns top suggested apps when the search bar is empty.
     pub fn top_apps(&self, max_results: u8) -> Vec<SearchResult> {
         let snapshot = self.index.load();

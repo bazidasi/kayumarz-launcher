@@ -34,20 +34,6 @@
                 android:textSize="@dimen/text_title2"
                 android:textStyle="bold" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/btn_today_add_widget"
-            android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:minWidth="@dimen/touch_target_min"
-            android:background="@drawable/bg_done_pill"
-            android:gravity="center"
-            android:paddingStart="@dimen/spacing_12"
-            android:paddingEnd="@dimen/spacing_12"
-            android:text="@string/today_add_widget"
-            android:textColor="@color/system_blue"
-            android:textSize="@dimen/text_footnote"
-            android:textStyle="bold" />
     </LinearLayout>
 
     <!-- Scrollable Stack of 16dp Rounded Widget Cards (8dp gutters) -->

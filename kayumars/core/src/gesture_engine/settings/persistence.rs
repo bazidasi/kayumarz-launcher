@@ -51,6 +51,10 @@ impl GesturePersistence {
             bincode::serialize_into(&mut writer, profile)
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
             writer.flush()?;
+            writer
+                .into_inner()
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+                .sync_all()?;
         }
         fs::rename(tmp, dst)?;
         Ok(())

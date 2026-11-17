@@ -52,7 +52,7 @@
             android:contentDescription="@string/clear_search" />
     </LinearLayout>
 
-    <!-- 2-Column Category Tiles Scroll Container -->
+    <!-- 3-Column iOS Dense Category Tiles Scroll Container -->
     <ScrollView
         android:id="@+id/library_categories_scroll"
         android:layout_width="match_parent"
@@ -65,7 +65,7 @@
             android:id="@+id/library_categories_grid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2"
+            android:columnCount="3"
             android:useDefaultMargins="false" />
     </ScrollView>
 
@@ -90,11 +90,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="@color/home_label_fg"
-                android:shadowColor="@color/home_label_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="4"
+                android:textColor="@color/label_primary"
                 android:textSize="@dimen/text_title2"
                 android:textStyle="bold" />
 

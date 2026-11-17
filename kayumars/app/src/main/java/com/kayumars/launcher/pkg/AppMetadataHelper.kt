@@ -13,6 +13,7 @@ import android.os.UserManager
 import androidx.palette.graphics.Palette
 import com.kayumars.launcher.R
 import com.kayumars.launcher.bridge.AppEntry
+import com.kayumars.launcher.bridge.Core
 
 object AppMetadataHelper {
 
@@ -21,6 +22,7 @@ object AppMetadataHelper {
         PRODUCTIVITY("PRODUCTIVITY", R.string.lib_cat_productivity),
         SOCIAL("SOCIAL", R.string.lib_cat_social),
         CREATIVITY("CREATIVITY", R.string.lib_cat_creativity),
+        GAMES("GAMES", R.string.lib_cat_games),
         UTILITIES("UTILITIES", R.string.lib_cat_utilities),
         OTHER("OTHER", R.string.lib_cat_other);
 
@@ -98,33 +100,12 @@ object AppMetadataHelper {
         return out
     }
 
+    /**
+     * Library buckets for every installed app, classified by the Rust core.
+     * Native unavailable -> empty map, and callers keep everything in OTHER.
+     */
     @JvmStatic
-    fun classifyApp(app: AppEntry): LibraryCategory {
-        val low = "${app.pkg} ${app.label}".lowercase()
-        return when {
-            low.contains("telegram") || low.contains("whatsapp") || low.contains("instagram") ||
-                low.contains("discord") || low.contains("twitter") || low.contains("messag") ||
-                low.contains("dialer") || low.contains("phone") || low.contains("eitaa") ||
-                low.contains("bale") || low.contains("rubika") || low.contains("signal") ||
-                low.contains("contact") || low.contains("slack") || low.contains("meet") -> LibraryCategory.SOCIAL
-            low.contains("mail") || low.contains("gmail") || low.contains("docs") ||
-                low.contains("drive") || low.contains("calendar") || low.contains("notion") ||
-                low.contains("obsidian") || low.contains("keep") || low.contains("bank") ||
-                low.contains("wallet") || low.contains("stripe") || low.contains("pdf") ||
-                low.contains("office") || low.contains("github") || low.contains("termux") -> LibraryCategory.PRODUCTIVITY
-            low.contains("camera") || low.contains("photo") || low.contains("gallery") ||
-                low.contains("music") || low.contains("spotify") || low.contains("youtube") ||
-                low.contains("vlc") || low.contains("video") || low.contains("studio") ||
-                low.contains("paint") || low.contains("draw") || low.contains("edit") ||
-                low.contains("netflix") || low.contains("telewebion") -> LibraryCategory.CREATIVITY
-            low.contains("calc") || low.contains("clock") || low.contains("setting") ||
-                low.contains("files") || low.contains("vpn") || low.contains("chrome") ||
-                low.contains("firefox") || low.contains("edge") || low.contains("browser") ||
-                low.contains("maps") || low.contains("weather") || low.contains("compass") ||
-                low.contains("qr") || low.contains("bitwarden") -> LibraryCategory.UTILITIES
-            else -> LibraryCategory.OTHER
-        }
-    }
+    fun classifyApps(apps: List<AppEntry>): Map<String, String> = Core.classifyApps(apps)
 
     @JvmStatic
     fun sampleWallpaperAccent(wallpaperDrawable: Drawable?, fallbackColor: Int): Int {

@@ -60,7 +60,8 @@ object AppIndexer {
                     pkg = pkg,
                     label = label,
                     userSerial = 0,
-                    flags = ri.activityInfo.applicationInfo.flags
+                    flags = ri.activityInfo.applicationInfo.flags,
+                    systemCategory = ri.activityInfo.applicationInfo.category
                 )
             )
         }

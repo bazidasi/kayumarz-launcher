@@ -18,7 +18,7 @@ import java.lang.ref.WeakReference
  * - SNAPPY: stiffness 800f,  damping 0.9f  (drag settle, neighbor reflow)
  */
 enum class SpringPreset(val stiffness: Float, val dampingRatio: Float) {
-    SNAP(1200f, SpringForce.DAMPING_RATIO_NO_BOUNCE),
+    SNAP(1200f, SpringForce.DAMPING_RATIO_NO_BOUNCY),
     BOUNCE(380f, 0.62f),
     GLIDE(200f, 0.85f),
     SNAPPY(800f, 0.90f),

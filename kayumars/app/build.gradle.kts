@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "com.kayumars.launcher"
     compileSdk = 35
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.kayumars.launcher"
@@ -57,21 +58,39 @@ android {
 
     sourceSets {
         getByName("main") {
-            jniLibs.srcDirs("src/main/jniLibs")
+            jniLibs.srcDirs("src/main/jniLibs", "build/rustJniLibs/android")
         }
     }
 }
 
-rust {
-    root = projectDir.parentFile.resolve("core").path
-    targets = listOf("arm64", "armv7", "x86_64")
+cargo {
+    module = "../core"
+    libname = "kayumars_core"
+    targets = listOf("arm64", "arm", "x86_64")
     profile = "release"
+    prebuiltToolchains = true
 }
 
 tasks.matching { it.name.startsWith("merge") || it.name.startsWith("package") }
     .configureEach {
         dependsOn("cargoBuild")
     }
+
+// rust-android-gradle leaves rustJniLibs empty in this setup; copy cargo outputs explicitly.
+tasks.matching { it.name == "cargoBuild" }.configureEach {
+    doLast {
+        listOf(
+            "aarch64-linux-android" to "arm64-v8a",
+            "armv7-linux-androideabi" to "armeabi-v7a",
+            "x86_64-linux-android" to "x86_64",
+        ).forEach { (triple, abi) ->
+            copy {
+                from("../target/$triple/release/libkayumars_core.so")
+                into(layout.buildDirectory.dir("rustJniLibs/android/$abi"))
+            }
+        }
+    }
+}
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -81,7 +100,6 @@ dependencies {
     implementation(libs.androidx.interpolator)
     implementation(libs.androidx.palette)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.jna)
     implementation(libs.androidx.profileinstaller)
 
     testImplementation(libs.junit)

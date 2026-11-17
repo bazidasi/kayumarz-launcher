@@ -17,19 +17,15 @@
         android:orientation="vertical"
         android:padding="@dimen/spacing_16">
 
-        <!-- Centered Editable Inline Folder Title -->
-        <EditText
+        <!-- Centered, non-editable folder title -->
+        <TextView
             android:id="@+id/folder_title_input"
             android:layout_width="match_parent"
             android:layout_height="44dp"
-            android:background="@null"
             android:gravity="center"
-            android:hint="@string/folder_rename_hint"
-            android:imeOptions="actionDone"
-            android:inputType="textCapWords"
+            android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/label_primary"
-            android:textColorHint="@color/label_secondary"
             android:textSize="@dimen/text_title2"
             android:textStyle="bold" />
 
@@ -44,7 +40,7 @@
             android:stretchMode="columnWidth"
             android:verticalSpacing="@dimen/spacing_8" />
 
-        <!-- Folder Pagination Bar (> 9 apps) -->
+        <!-- Folder Pagination Dots (> 9 apps); RTL order follows the layout direction -->
         <LinearLayout
             android:id="@+id/folder_pager_bar"
             android:layout_width="match_parent"
@@ -54,34 +50,12 @@
             android:orientation="horizontal"
             android:visibility="gone">
 
-            <TextView
-                android:id="@+id/btn_folder_prev"
-                android:layout_width="@dimen/touch_target_min"
-                android:layout_height="32dp"
-                android:gravity="center"
-                android:text="‹"
-                android:textColor="@color/system_blue"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_folder_page"
+            <LinearLayout
+                android:id="@+id/folder_page_dots"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/spacing_12"
-                android:layout_marginEnd="@dimen/spacing_12"
-                android:textColor="@color/label_secondary"
-                android:textSize="@dimen/text_footnote" />
-
-            <TextView
-                android:id="@+id/btn_folder_next"
-                android:layout_width="@dimen/touch_target_min"
-                android:layout_height="32dp"
                 android:gravity="center"
-                android:text="›"
-                android:textColor="@color/system_blue"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
